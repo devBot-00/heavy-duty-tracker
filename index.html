@@ -6,141 +6,196 @@
 <title>Heavy Duty Tracker</title>
 <style>
   :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --surface2: #242424;
-    --border: #333;
-    --accent: #e8c46a;
-    --accent2: #c49a2a;
-    --text: #f0f0f0;
-    --muted: #888;
-    --red: #e05555;
-    --green: #55c47a;
-    --radius: 10px;
+    --bg: #F2F3F7;
+    --surface: #FFFFFF;
+    --surface2: #F8F9FB;
+    --border: #E8EAF0;
+    --text: #0F1117;
+    --muted: #8A8FA8;
+    --red: #EF4444;
+    --green: #10B981;
+    --radius: 14px;
+    /* Session accent colors */
+    --upper-a: #F97316;
+    --lower-a: #3B82F6;
+    --upper-b: #10B981;
+    --lower-b: #8B5CF6;
+    --sprints: #EF4444;
+    --accent: #0F1117;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; padding-bottom: 80px; }
 
   /* NAV */
-  .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .nav-title { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
-  .nav-btn { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 4px 8px; }
-  .nav-right { display: flex; align-items: center; gap: 2px; }
+  .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 20px 12px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-title { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+  .nav-title span { color: var(--upper-a); }
 
-  /* TABS */
-  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab { flex: none; padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  /* BOTTOM NAV */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+  .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px 8px; cursor: pointer; gap: 3px; }
+  .bnav-icon { font-size: 22px; line-height: 1; }
+  .bnav-label { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.3px; }
+  .bnav-item.active .bnav-label { color: var(--text); }
+  .bnav-item.active .bnav-icon { filter: none; }
+
+  /* WORKOUT TABS (within workout section) */
+  .session-tabs { display: flex; gap: 8px; padding: 16px 16px 0; overflow-x: auto; scrollbar-width: none; }
+  .session-tabs::-webkit-scrollbar { display: none; }
+  .session-tab { flex: none; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 2px solid transparent; background: var(--surface); color: var(--muted); transition: all 0.15s; white-space: nowrap; }
+  .session-tab.active { color: #fff; border-color: transparent; }
 
   /* SCREENS */
   .screen { display: none; padding: 16px; max-width: 600px; margin: 0 auto; }
   .screen.active { display: block; }
 
-  /* SESSION HEADER */
-  .session-header { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
-  .session-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-  .session-header p { font-size: 13px; color: var(--muted); }
-  .session-meta { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
-  .session-meta span { font-size: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; color: var(--muted); }
+  /* SESSION HEADER BANNER */
+  .session-banner { border-radius: var(--radius); padding: 20px; margin-bottom: 16px; color: #fff; position: relative; overflow: hidden; }
+  .session-banner h2 { font-size: 22px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.5px; }
+  .session-banner p { font-size: 13px; opacity: 0.8; }
+  .session-banner-meta { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .session-banner-meta span { font-size: 11px; background: rgba(255,255,255,0.2); border-radius: 20px; padding: 3px 10px; font-weight: 600; }
 
   /* SECTION LABEL */
   .section-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: var(--muted); text-transform: uppercase; margin: 20px 0 8px; }
 
   /* EXERCISE CARD */
-  .exercise-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
-  .exercise-header { padding: 12px 14px; display: flex; align-items: flex-start; justify-content: space-between; cursor: pointer; }
-  .exercise-name { font-size: 15px; font-weight: 600; line-height: 1.3; flex: 1; }
-  .exercise-target { font-size: 12px; color: var(--accent); font-weight: 500; margin-top: 2px; }
-  .exercise-badge { font-size: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; color: var(--muted); white-space: nowrap; margin-left: 10px; flex-shrink: 0; }
-  .exercise-note { font-size: 12px; color: var(--muted); padding: 0 14px 10px; line-height: 1.5; display: none; }
+  .exercise-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; transition: box-shadow 0.15s; }
+  .exercise-card.open { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .exercise-header { padding: 14px 16px; display: flex; align-items: flex-start; justify-content: space-between; cursor: pointer; }
+  .exercise-name { font-size: 15px; font-weight: 700; line-height: 1.3; flex: 1; color: var(--text); }
+  .exercise-target { font-size: 12px; font-weight: 600; margin-top: 3px; }
+  .exercise-note { font-size: 12px; color: var(--muted); padding: 0 16px 12px; line-height: 1.6; display: none; }
   .exercise-card.open .exercise-note { display: block; }
-  .exercise-chevron { color: var(--muted); font-size: 14px; margin-left: 8px; transition: transform 0.2s; flex-shrink: 0; }
+  .exercise-chevron { color: var(--muted); font-size: 12px; margin-left: 8px; transition: transform 0.2s; flex-shrink: 0; margin-top: 3px; }
   .exercise-card.open .exercise-chevron { transform: rotate(180deg); }
 
-  /* LOG ENTRY FORM */
-  .log-form { border-top: 1px solid var(--border); padding: 12px 14px; background: var(--surface2); display: none; }
+  /* LOG FORM */
+  .log-form { border-top: 1.5px solid var(--border); padding: 14px 16px; background: var(--surface2); display: none; }
   .exercise-card.open .log-form { display: block; }
-  .log-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .log-row { display: flex; gap: 10px; margin-bottom: 12px; }
   .log-field { flex: 1; }
-  .log-field label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.5px; }
-  .log-field input, .log-field textarea, .log-field select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 9px 10px; color: var(--text); font-size: 15px; outline: none; transition: border-color 0.15s; -webkit-appearance: none; }
-  .log-field input:focus, .log-field textarea:focus { border-color: var(--accent); }
-  .log-field textarea { resize: none; height: 56px; font-size: 13px; }
-  .log-actions { display: flex; gap: 8px; }
-  .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
-  .btn-primary { background: var(--accent); color: #000; flex: 1; }
-  .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
-  .btn:active { opacity: 0.75; }
+  .log-field label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; }
+  .log-field input, .log-field textarea { width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; color: var(--text); font-size: 16px; font-weight: 600; outline: none; transition: border-color 0.15s; -webkit-appearance: none; }
+  .log-field input:focus, .log-field textarea:focus { border-color: var(--session-color, var(--text)); }
+  .log-field textarea { resize: none; height: 60px; font-size: 13px; font-weight: 400; }
 
-  /* LAST LOG BADGE */
-  .last-log { font-size: 12px; color: var(--green); background: rgba(85,196,122,0.08); border: 1px solid rgba(85,196,122,0.2); border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  /* BUTTONS */
+  .btn { padding: 12px 18px; border-radius: 12px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .btn-primary { background: var(--text); color: #fff; width: 100%; margin-top: 6px; }
+  .btn-secondary { background: var(--surface); border: 1.5px solid var(--border); color: var(--muted); }
+  .btn:active { transform: scale(0.97); }
+
+  /* LAST LOG */
+  .last-log { font-size: 12px; background: rgba(16,185,129,0.08); border: 1.5px solid rgba(16,185,129,0.2); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; color: var(--green); }
   .last-log .label { color: var(--muted); }
 
-  /* HISTORY SCREEN */
-  .history-date-group { margin-bottom: 20px; }
-  .history-date-label { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.8px; margin-bottom: 8px; }
-  .history-session-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
-  .history-session-name { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
-  .history-entry { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  /* DONE CHECKMARK */
+  .done-check { width: 22px; height: 22px; border-radius: 50%; background: var(--green); color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* HISTORY */
+  .history-session-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  .history-session-name { font-size: 14px; font-weight: 800; margin-bottom: 10px; }
+  .history-entry { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); }
   .history-entry:last-child { border-bottom: none; }
-  .history-ex-name { font-size: 13px; flex: 1; }
-  .history-ex-vals { font-size: 13px; color: var(--accent); font-weight: 600; white-space: nowrap; margin-left: 12px; }
+  .history-ex-name { font-size: 13px; flex: 1; color: var(--text); }
+  .history-ex-vals { font-size: 13px; font-weight: 700; white-space: nowrap; margin-left: 12px; }
   .history-ex-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .history-feeling { font-size: 12px; color: var(--muted); margin-top: 8px; font-style: italic; }
   .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
   .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-state p { font-size: 14px; }
+  .empty-state p { font-size: 14px; line-height: 1.6; }
 
   /* PROGRESS */
   .progress-screen-section { margin-bottom: 24px; }
-  .progress-screen-section h3 { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
-  .progress-row { display: flex; justify-content: space-between; align-items: baseline; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; }
-  .progress-ex { font-size: 13px; }
-  .progress-vals { font-size: 13px; font-weight: 600; color: var(--green); }
+  .progress-screen-section h3 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .progress-row { display: flex; justify-content: space-between; align-items: center; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 16px; margin-bottom: 8px; }
+  .progress-ex { font-size: 14px; font-weight: 600; }
+  .progress-vals { font-size: 16px; font-weight: 800; color: var(--green); }
   .progress-trend { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .trend-up { color: var(--green); }
+  .trend-down { color: var(--red); }
 
-  /* SPRINT SCREEN */
-  .sprint-set { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
-  .sprint-label { font-size: 14px; font-weight: 600; }
-  .sprint-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .sprint-done-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 8px 14px; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
-  .sprint-done-btn.done { background: rgba(85,196,122,0.1); border-color: var(--green); color: var(--green); }
+  /* HOME SCREEN */
+  .home-greeting { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .home-date { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .home-today-card { border-radius: var(--radius); padding: 20px; color: #fff; margin-bottom: 20px; cursor: pointer; transition: transform 0.15s; }
+  .home-today-card:active { transform: scale(0.98); }
+  .home-today-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.75; margin-bottom: 8px; }
+  .home-today-name { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .home-today-sub { font-size: 14px; opacity: 0.8; margin-bottom: 16px; }
+  .home-today-btn { background: rgba(255,255,255,0.25); border: none; color: #fff; font-size: 14px; font-weight: 700; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
+  .home-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .home-stat-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .home-stat-val { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+  .home-stat-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .home-section-label { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+  .home-recent-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+  .home-recent-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .home-recent-name { font-size: 14px; font-weight: 700; }
+  .home-recent-date { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .home-pr-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .home-pr-name { font-size: 13px; font-weight: 600; }
+  .home-pr-val { font-size: 16px; font-weight: 800; color: var(--green); }
+  .pr-badge { background: #FEF3C7; border: 1.5px solid #FCD34D; color: #92400E; border-radius: 5px; font-size: 10px; font-weight: 700; padding: 1px 6px; letter-spacing: 0.5px; }
 
-  /* DELETE BTN */
-  .delete-session-btn { background: none; border: 1px solid var(--red); color: var(--red); border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer; margin-top: 8px; }
+  /* DELETE */
+  .delete-session-btn { background: none; border: 1.5px solid #FECACA; color: var(--red); border-radius: 8px; padding: 7px 14px; font-size: 12px; cursor: pointer; margin-top: 10px; font-weight: 600; }
 
-  /* PR BADGE */
-  .pr-badge { background: rgba(232,196,106,0.15); border: 1px solid var(--accent); color: var(--accent); border-radius: 5px; font-size: 10px; font-weight: 700; padding: 1px 5px; letter-spacing: 0.5px; }
+  /* SETTINGS */
+  .settings-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+  .settings-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
 </style>
 </head>
 <body>
 
 <div class="nav">
-  <span class="nav-title">⚡ HEAVY DUTY</span>
+  <span class="nav-title">Heavy <span>Duty</span></span>
 </div>
 
-<div class="tabs" id="tabs">
-  <div class="tab active" onclick="switchTab('upper-a')">Upper A</div>
-  <div class="tab" onclick="switchTab('lower-a')">Lower A</div>
-  <div class="tab" onclick="switchTab('upper-b')">Upper B</div>
-  <div class="tab" onclick="switchTab('lower-b')">Lower B</div>
-  <div class="tab" onclick="switchTab('sprints')">Sprints</div>
-  <div class="tab" onclick="switchTab('history')">History</div>
-  <div class="tab" onclick="switchTab('progress')">Progress</div>
-  <div class="tab" onclick="switchTab('settings')">⚙️</div>
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="bnav-item active" id="bnav-home" onclick="switchSection('home')">
+    <div class="bnav-icon">🏠</div>
+    <div class="bnav-label">Home</div>
+  </div>
+  <div class="bnav-item" id="bnav-workout" onclick="switchSection('workout')">
+    <div class="bnav-icon">💪</div>
+    <div class="bnav-label">Workout</div>
+  </div>
+  <div class="bnav-item" id="bnav-history" onclick="switchSection('history')">
+    <div class="bnav-icon">📓</div>
+    <div class="bnav-label">History</div>
+  </div>
+  <div class="bnav-item" id="bnav-progress" onclick="switchSection('progress')">
+    <div class="bnav-icon">📈</div>
+    <div class="bnav-label">Progress</div>
+  </div>
+  <div class="bnav-item" id="bnav-settings" onclick="switchSection('settings')">
+    <div class="bnav-icon">⚙️</div>
+    <div class="bnav-label">Settings</div>
+  </div>
+</div>
+
+<!-- WORKOUT SESSION TABS -->
+<div class="session-tabs" id="session-tabs" style="display:none;">
+  <div class="session-tab active" id="stab-upper-a" onclick="switchTab('upper-a')" style="background:var(--upper-a)">Upper A</div>
+  <div class="session-tab" id="stab-lower-a" onclick="switchTab('lower-a')">Lower A</div>
+  <div class="session-tab" id="stab-upper-b" onclick="switchTab('upper-b')">Upper B</div>
+  <div class="session-tab" id="stab-lower-b" onclick="switchTab('lower-b')">Lower B</div>
+  <div class="session-tab" id="stab-sprints" onclick="switchTab('sprints')">Sprints</div>
+</div>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div id="home-content"></div>
 </div>
 
 <!-- UPPER A -->
-<div class="screen active" id="screen-upper-a">
-  <div class="session-header">
+<div class="screen" id="screen-upper-a">
+  <div class="session-banner" style="background:var(--upper-a)">
     <h2>Upper A — Push</h2>
     <p>Monday · Chest, Shoulders, Triceps</p>
-    <div class="session-meta">
-      <span>30–45 min</span>
-      <span>1–2 working sets</span>
-      <span>Take every set to failure</span>
-    </div>
+    <div class="session-banner-meta"><span>30–45 min</span><span>To failure</span></div>
   </div>
   <div class="section-label">Warm-Up</div>
   <div id="warmup-upper-a"></div>
@@ -151,14 +206,10 @@
 
 <!-- LOWER A -->
 <div class="screen" id="screen-lower-a">
-  <div class="session-header">
+  <div class="session-banner" style="background:var(--lower-a)">
     <h2>Lower A — Squat</h2>
     <p>Tuesday · Quads, Adductors, Calves</p>
-    <div class="session-meta">
-      <span>30–45 min</span>
-      <span>1–2 working sets</span>
-      <span>Take every set to failure</span>
-    </div>
+    <div class="session-banner-meta"><span>30–45 min</span><span>To failure</span></div>
   </div>
   <div class="section-label">Warm-Up</div>
   <div id="warmup-lower-a"></div>
@@ -169,14 +220,10 @@
 
 <!-- UPPER B -->
 <div class="screen" id="screen-upper-b">
-  <div class="session-header">
+  <div class="session-banner" style="background:var(--upper-b)">
     <h2>Upper B — Pull</h2>
     <p>Thursday · Back, Biceps</p>
-    <div class="session-meta">
-      <span>30–45 min</span>
-      <span>1–2 working sets</span>
-      <span>Take every set to failure</span>
-    </div>
+    <div class="session-banner-meta"><span>30–45 min</span><span>To failure</span></div>
   </div>
   <div class="section-label">Warm-Up</div>
   <div id="warmup-upper-b"></div>
@@ -187,14 +234,10 @@
 
 <!-- LOWER B -->
 <div class="screen" id="screen-lower-b">
-  <div class="session-header">
+  <div class="session-banner" style="background:var(--lower-b)">
     <h2>Lower B — Hinge</h2>
     <p>Friday · Hamstrings, Glutes, Hips, Calves</p>
-    <div class="session-meta">
-      <span>30–45 min</span>
-      <span>1–2 working sets</span>
-      <span>Take every set to failure</span>
-    </div>
+    <div class="session-banner-meta"><span>30–45 min</span><span>To failure</span></div>
   </div>
   <div class="section-label">Warm-Up</div>
   <div id="warmup-lower-b"></div>
@@ -205,13 +248,10 @@
 
 <!-- SPRINTS -->
 <div class="screen" id="screen-sprints">
-  <div class="session-header">
+  <div class="session-banner" style="background:var(--sprints)">
     <h2>Sprints — Optional</h2>
     <p>Wednesday · Only if legs aren't beat up</p>
-    <div class="session-meta">
-      <span>60m distance</span>
-      <span>3 min rest between working sprints</span>
-    </div>
+    <div class="session-banner-meta"><span>60m</span><span>3 min rest</span></div>
   </div>
   <div class="section-label">Movement Prep</div>
   <div id="sprint-prep"></div>
@@ -235,9 +275,9 @@
 
 <!-- SETTINGS -->
 <div class="screen" id="screen-settings">
-  <div class="session-header" style="margin-bottom:20px;">
-    <h2>Cloud Storage Setup</h2>
-    <p>Your data is stored in a private JSONBin.io bin — free, no subscription needed.</p>
+  <div style="margin-bottom:20px;">
+    <div class="home-greeting" style="font-size:22px;">Settings</div>
+    <div class="home-date">Cloud storage &amp; backup</div>
   </div>
 
   <div class="section-label">Step 1</div>
@@ -523,14 +563,15 @@ function renderExercise(ex, isWorking, sessionId) {
       </div>
     </div>` : '';
 
+  const sessionColor = SESSION_COLORS[sessionId] || 'var(--text)';
   return `<div class="exercise-card" id="card-${ex.id}">
     <div class="exercise-header" onclick="toggleCard('${ex.id}')">
-      <div>
+      <div style="flex:1">
         <div class="exercise-name">${ex.name}</div>
-        <div class="exercise-target">${ex.target}</div>
+        <div class="exercise-target" style="color:${sessionColor}">${ex.target}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-        ${current.weight || current.reps ? '<span style="color:var(--green);font-size:11px;font-weight:700">✓</span>' : ''}
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        ${current.weight || current.reps ? '<div class="done-check">✓</div>' : ''}
         <span class="exercise-chevron">▼</span>
       </div>
     </div>
@@ -586,13 +627,14 @@ function renderHistory() {
           <div class="history-ex-name">${ex.name}</div>
           ${e.notes ? `<div class="history-ex-note">${e.notes}</div>` : ''}
         </div>
-        <div class="history-ex-vals">${e.weight ? e.weight + ' lbs' : ''}${e.weight && e.reps ? ' · ' : ''}${e.reps ? e.reps + ' reps' : ''}</div>
+        <div class="history-ex-vals" style="color:${hColor}">${e.weight ? e.weight + ' lbs' : ''}${e.weight && e.reps ? ' · ' : ''}${e.reps ? e.reps + ' reps' : ''}</div>
       </div>`;
     }
     const feelings = ['😵','😤','💪','🔥','⚡'];
+    const hColor = SESSION_COLORS[log.sessionId] || 'var(--text)';
     html += `<div class="history-session-card">
       <div style="display:flex;justify-content:space-between;align-items:baseline;">
-        <div class="history-session-name">${s.name}</div>
+        <div class="history-session-name" style="color:${hColor}">${s.name}</div>
         <div style="font-size:12px;color:var(--muted)">${formatDateFull(log.date)}</div>
       </div>
       ${exHtml || '<div style="color:var(--muted);font-size:13px">No exercises logged</div>'}
@@ -690,6 +732,127 @@ async function deleteSession(id) {
   renderHistory();
 }
 
+// ─── HOME SCREEN ──────────────────────────────────────────────────────────────
+const SESSION_COLORS = {
+  'upper-a': 'var(--upper-a)',
+  'lower-a': 'var(--lower-a)',
+  'upper-b': 'var(--upper-b)',
+  'lower-b': 'var(--lower-b)',
+  'sprints': 'var(--sprints)'
+};
+const TODAY_SESSION = {
+  1: 'upper-a', // Mon
+  2: 'lower-a', // Tue
+  3: 'sprints',  // Wed
+  4: 'upper-b', // Thu
+  5: 'lower-b', // Fri
+};
+
+function renderHome() {
+  const el = document.getElementById('home-content');
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateStr = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+  const todaySid = TODAY_SESSION[now.getDay()];
+  const todaySession = todaySid ? SESSIONS[todaySid] : null;
+  const todayColor = todaySid ? SESSION_COLORS[todaySid] : '#8A8FA8';
+
+  // Stats
+  const totalSessions = _logsCache.length;
+  // Streak: count consecutive days with at least one session going back from today
+  let streak = 0;
+  if (_logsCache.length > 0) {
+    const sessionDays = new Set(_logsCache.map(l => l.date.slice(0, 10)));
+    const d = new Date(); d.setHours(0,0,0,0);
+    // allow today or yesterday as start
+    if (!sessionDays.has(d.toISOString().slice(0,10))) d.setDate(d.getDate() - 1);
+    while (sessionDays.has(d.toISOString().slice(0,10))) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    }
+  }
+
+  // Recent sessions (last 3)
+  const recent = _logsCache.slice(-3).reverse();
+
+  // Top PRs
+  const prs = [];
+  for (const [sid, s] of Object.entries(SESSIONS)) {
+    if (sid === 'sprints') continue;
+    for (const ex of s.working) {
+      let best = null, bestDate = null;
+      for (const log of _logsCache) {
+        const e = log.exercises?.[ex.id];
+        if (e && e.weight) {
+          const w = parseFloat(e.weight);
+          if (!best || w > best) { best = w; bestDate = log.date; }
+        }
+      }
+      if (best) prs.push({ name: ex.name.replace(/[★✨◆]/g,'').trim(), weight: best, date: bestDate, color: SESSION_COLORS[sid] });
+    }
+  }
+  prs.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const recentPRs = prs.slice(0, 4);
+
+  let todayHtml = todaySession ? `
+    <div class="home-today-card" style="background:${todayColor}" onclick="switchSection('workout');switchTab('${todaySid}')">
+      <div class="home-today-label">Today's Workout</div>
+      <div class="home-today-name">${todaySession.name}</div>
+      <div class="home-today-sub">${todaySession.day}</div>
+      <button class="home-today-btn">Start →</button>
+    </div>` : `
+    <div class="home-today-card" style="background:#8A8FA8">
+      <div class="home-today-label">Today</div>
+      <div class="home-today-name">Rest Day</div>
+      <div class="home-today-sub">Recover. Growth happens here.</div>
+    </div>`;
+
+  let recentHtml = recent.length === 0 ? '' : `
+    <div class="home-section-label">Recent Sessions</div>
+    ${recent.map(log => {
+      const s = SESSIONS[log.sessionId];
+      if (!s) return '';
+      return `<div class="home-recent-card">
+        <div class="home-recent-dot" style="background:${SESSION_COLORS[log.sessionId] || '#ccc'}"></div>
+        <div>
+          <div class="home-recent-name">${s.name}</div>
+          <div class="home-recent-date">${formatDate(log.date)}</div>
+        </div>
+      </div>`;
+    }).join('')}`;
+
+  let prsHtml = recentPRs.length === 0 ? '' : `
+    <div class="home-section-label" style="margin-top:20px;">Recent PRs</div>
+    ${recentPRs.map(p => `
+      <div class="home-pr-card">
+        <div>
+          <div class="home-pr-name">${p.name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${formatDate(p.date)}</div>
+        </div>
+        <div class="home-pr-val">${p.weight} lbs</div>
+      </div>`).join('')}`;
+
+  el.innerHTML = `
+    <div class="home-greeting">Hey Devon 👋</div>
+    <div class="home-date">${dateStr}</div>
+    ${todayHtml}
+    <div class="home-stats">
+      <div class="home-stat-card">
+        <div class="home-stat-val">${totalSessions}</div>
+        <div class="home-stat-label">Sessions logged</div>
+      </div>
+      <div class="home-stat-card">
+        <div class="home-stat-val">${streak}</div>
+        <div class="home-stat-label">Day streak</div>
+      </div>
+    </div>
+    ${recentHtml}
+    ${prsHtml}
+    ${totalSessions === 0 ? '<div class="empty-state"><div class="icon">💪</div><p>Log your first session to see stats here.</p></div>' : ''}
+  `;
+}
+
 // ─── SETTINGS ─────────────────────────────────────────────────────────────────
 function previewCreds() {
   // nothing needed live
@@ -727,17 +890,58 @@ function loadCredsIntoForm() {
   if (bin) document.getElementById('input-binid').value = bin;
 }
 
-// ─── TABS ─────────────────────────────────────────────────────────────────────
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+const SESSION_TAB_COLORS = {
+  'upper-a': 'var(--upper-a)',
+  'lower-a': 'var(--lower-a)',
+  'upper-b': 'var(--upper-b)',
+  'lower-b': 'var(--lower-b)',
+  'sprints': 'var(--sprints)'
+};
+
+function switchSection(section) {
+  // bottom nav active state
+  document.querySelectorAll('.bnav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('bnav-' + section)?.classList.add('active');
+
+  // show/hide session tabs
+  document.getElementById('session-tabs').style.display = section === 'workout' ? 'flex' : 'none';
+
+  // hide all screens
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+  if (section === 'workout') {
+    document.getElementById('screen-' + currentSession).classList.add('active');
+    renderSession(currentSession);
+  } else if (section === 'home') {
+    document.getElementById('screen-home').classList.add('active');
+    renderHome();
+  } else if (section === 'history') {
+    document.getElementById('screen-history').classList.add('active');
+    renderHistory();
+  } else if (section === 'progress') {
+    document.getElementById('screen-progress').classList.add('active');
+    renderProgress();
+  } else if (section === 'settings') {
+    document.getElementById('screen-settings').classList.add('active');
+    loadCredsIntoForm();
+  }
+}
+
 function switchTab(id) {
   currentSession = id;
-  const ids = ['upper-a','lower-a','upper-b','lower-b','sprints','history','progress','settings'];
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ids[i] === id));
+  const tabIds = ['upper-a','lower-a','upper-b','lower-b','sprints'];
+  tabIds.forEach(tid => {
+    const el = document.getElementById('stab-' + tid);
+    if (!el) return;
+    const isActive = tid === id;
+    el.classList.toggle('active', isActive);
+    el.style.background = isActive ? SESSION_TAB_COLORS[tid] : 'var(--surface)';
+    el.style.color = isActive ? '#fff' : 'var(--muted)';
+  });
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
-  if (id === 'history') renderHistory();
-  else if (id === 'progress') renderProgress();
-  else if (id === 'sprints') renderSprintSession();
-  else if (id === 'settings') loadCredsIntoForm();
+  if (id === 'sprints') renderSprintSession();
   else renderSession(id);
 }
 
@@ -760,8 +964,15 @@ function formatDateFull(iso) {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 (async () => {
   await loadLogsIntoCache();
-  renderSession('upper-a');
+  renderHome();
   updateAutoSaveStatus();
+  // init session tab colors
+  ['upper-a','lower-a','upper-b','lower-b','sprints'].forEach(id => {
+    const el = document.getElementById('stab-' + id);
+    if (el) { el.style.color = 'var(--muted)'; el.style.background = 'var(--surface)'; }
+  });
+  const firstTab = document.getElementById('stab-upper-a');
+  if (firstTab) { firstTab.style.background = 'var(--upper-a)'; firstTab.style.color = '#fff'; }
 })();
 </script>
 </body>
