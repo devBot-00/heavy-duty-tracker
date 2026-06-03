@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Heavy Duty Tracker</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #333;
+    --accent: #e8c46a;
+    --accent2: #c49a2a;
+    --text: #f0f0f0;
+    --muted: #888;
+    --red: #e05555;
+    --green: #55c47a;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* NAV */
+  .nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .nav-title { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; color: var(--accent); }
+  .nav-btn { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 4px 8px; }
+  .nav-right { display: flex; align-items: center; gap: 2px; }
+
+  /* TABS */
+  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: none; padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* SCREENS */
+  .screen { display: none; padding: 16px; max-width: 600px; margin: 0 auto; }
+  .screen.active { display: block; }
+
+  /* SESSION HEADER */
+  .session-header { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+  .session-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .session-header p { font-size: 13px; color: var(--muted); }
+  .session-meta { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+  .session-meta span { font-size: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; color: var(--muted); }
+
+  /* SECTION LABEL */
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: var(--muted); text-transform: uppercase; margin: 20px 0 8px; }
+
+  /* EXERCISE CARD */
+  .exercise-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+  .exercise-header { padding: 12px 14px; display: flex; align-items: flex-start; justify-content: space-between; cursor: pointer; }
+  .exercise-name { font-size: 15px; font-weight: 600; line-height: 1.3; flex: 1; }
+  .exercise-target { font-size: 12px; color: var(--accent); font-weight: 500; margin-top: 2px; }
+  .exercise-badge { font-size: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; color: var(--muted); white-space: nowrap; margin-left: 10px; flex-shrink: 0; }
+  .exercise-note { font-size: 12px; color: var(--muted); padding: 0 14px 10px; line-height: 1.5; display: none; }
+  .exercise-card.open .exercise-note { display: block; }
+  .exercise-chevron { color: var(--muted); font-size: 14px; margin-left: 8px; transition: transform 0.2s; flex-shrink: 0; }
+  .exercise-card.open .exercise-chevron { transform: rotate(180deg); }
+
+  /* LOG ENTRY FORM */
+  .log-form { border-top: 1px solid var(--border); padding: 12px 14px; background: var(--surface2); display: none; }
+  .exercise-card.open .log-form { display: block; }
+  .log-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .log-field { flex: 1; }
+  .log-field label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.5px; }
+  .log-field input, .log-field textarea, .log-field select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 9px 10px; color: var(--text); font-size: 15px; outline: none; transition: border-color 0.15s; -webkit-appearance: none; }
+  .log-field input:focus, .log-field textarea:focus { border-color: var(--accent); }
+  .log-field textarea { resize: none; height: 56px; font-size: 13px; }
+  .log-actions { display: flex; gap: 8px; }
+  .btn { padding: 10px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .btn-primary { background: var(--accent); color: #000; flex: 1; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .btn:active { opacity: 0.75; }
+
+  /* LAST LOG BADGE */
+  .last-log { font-size: 12px; color: var(--green); background: rgba(85,196,122,0.08); border: 1px solid rgba(85,196,122,0.2); border-radius: 6px; padding: 6px 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .last-log .label { color: var(--muted); }
+
+  /* HISTORY SCREEN */
+  .history-date-group { margin-bottom: 20px; }
+  .history-date-label { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: 0.8px; margin-bottom: 8px; }
+  .history-session-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+  .history-session-name { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+  .history-entry { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .history-entry:last-child { border-bottom: none; }
+  .history-ex-name { font-size: 13px; flex: 1; }
+  .history-ex-vals { font-size: 13px; color: var(--accent); font-weight: 600; white-space: nowrap; margin-left: 12px; }
+  .history-ex-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .history-feeling { font-size: 12px; color: var(--muted); margin-top: 8px; font-style: italic; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* PROGRESS */
+  .progress-screen-section { margin-bottom: 24px; }
+  .progress-screen-section h3 { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+  .progress-row { display: flex; justify-content: space-between; align-items: baseline; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; }
+  .progress-ex { font-size: 13px; }
+  .progress-vals { font-size: 13px; font-weight: 600; color: var(--green); }
+  .progress-trend { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* SPRINT SCREEN */
+  .sprint-set { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+  .sprint-label { font-size: 14px; font-weight: 600; }
+  .sprint-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .sprint-done-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 8px 14px; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .sprint-done-btn.done { background: rgba(85,196,122,0.1); border-color: var(--green); color: var(--green); }
+
+  /* DELETE BTN */
+  .delete-session-btn { background: none; border: 1px solid var(--red); color: var(--red); border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer; margin-top: 8px; }
+
+  /* PR BADGE */
+  .pr-badge { background: rgba(232,196,106,0.15); border: 1px solid var(--accent); color: var(--accent); border-radius: 5px; font-size: 10px; font-weight: 700; padding: 1px 5px; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <span class="nav-title">⚡ HEAVY DUTY</span>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" onclick="switchTab('upper-a')">Upper A</div>
+  <div class="tab" onclick="switchTab('lower-a')">Lower A</div>
+  <div class="tab" onclick="switchTab('upper-b')">Upper B</div>
+  <div class="tab" onclick="switchTab('lower-b')">Lower B</div>
+  <div class="tab" onclick="switchTab('sprints')">Sprints</div>
+  <div class="tab" onclick="switchTab('history')">History</div>
+  <div class="tab" onclick="switchTab('progress')">Progress</div>
+  <div class="tab" onclick="switchTab('settings')">⚙️</div>
+</div>
+
+<!-- UPPER A -->
+<div class="screen active" id="screen-upper-a">
+  <div class="session-header">
+    <h2>Upper A — Push</h2>
+    <p>Monday · Chest, Shoulders, Triceps</p>
+    <div class="session-meta">
+      <span>30–45 min</span>
+      <span>1–2 working sets</span>
+      <span>Take every set to failure</span>
+    </div>
+  </div>
+  <div class="section-label">Warm-Up</div>
+  <div id="warmup-upper-a"></div>
+  <div class="section-label">Working Sets</div>
+  <div id="working-upper-a"></div>
+  <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="finishSession('upper-a')">Finish Session</button>
+</div>
+
+<!-- LOWER A -->
+<div class="screen" id="screen-lower-a">
+  <div class="session-header">
+    <h2>Lower A — Squat</h2>
+    <p>Tuesday · Quads, Adductors, Calves</p>
+    <div class="session-meta">
+      <span>30–45 min</span>
+      <span>1–2 working sets</span>
+      <span>Take every set to failure</span>
+    </div>
+  </div>
+  <div class="section-label">Warm-Up</div>
+  <div id="warmup-lower-a"></div>
+  <div class="section-label">Working Sets</div>
+  <div id="working-lower-a"></div>
+  <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="finishSession('lower-a')">Finish Session</button>
+</div>
+
+<!-- UPPER B -->
+<div class="screen" id="screen-upper-b">
+  <div class="session-header">
+    <h2>Upper B — Pull</h2>
+    <p>Thursday · Back, Biceps</p>
+    <div class="session-meta">
+      <span>30–45 min</span>
+      <span>1–2 working sets</span>
+      <span>Take every set to failure</span>
+    </div>
+  </div>
+  <div class="section-label">Warm-Up</div>
+  <div id="warmup-upper-b"></div>
+  <div class="section-label">Working Sets</div>
+  <div id="working-upper-b"></div>
+  <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="finishSession('upper-b')">Finish Session</button>
+</div>
+
+<!-- LOWER B -->
+<div class="screen" id="screen-lower-b">
+  <div class="session-header">
+    <h2>Lower B — Hinge</h2>
+    <p>Friday · Hamstrings, Glutes, Hips, Calves</p>
+    <div class="session-meta">
+      <span>30–45 min</span>
+      <span>1–2 working sets</span>
+      <span>Take every set to failure</span>
+    </div>
+  </div>
+  <div class="section-label">Warm-Up</div>
+  <div id="warmup-lower-b"></div>
+  <div class="section-label">Working Sets</div>
+  <div id="working-lower-b"></div>
+  <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="finishSession('lower-b')">Finish Session</button>
+</div>
+
+<!-- SPRINTS -->
+<div class="screen" id="screen-sprints">
+  <div class="session-header">
+    <h2>Sprints — Optional</h2>
+    <p>Wednesday · Only if legs aren't beat up</p>
+    <div class="session-meta">
+      <span>60m distance</span>
+      <span>3 min rest between working sprints</span>
+    </div>
+  </div>
+  <div class="section-label">Movement Prep</div>
+  <div id="sprint-prep"></div>
+  <div class="section-label">Sprint Protocol</div>
+  <div id="sprint-sets"></div>
+  <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="finishSession('sprints')">Log Sprint Session</button>
+</div>
+
+<!-- HISTORY -->
+<div class="screen" id="screen-history">
+  <div style="margin-bottom:14px;">
+    <span id="autosave-status" style="font-size:12px;color:var(--muted)">Loading...</span>
+  </div>
+  <div id="history-content"></div>
+</div>
+
+<!-- PROGRESS -->
+<div class="screen" id="screen-progress">
+  <div id="progress-content"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="screen-settings">
+  <div class="session-header" style="margin-bottom:20px;">
+    <h2>Cloud Storage Setup</h2>
+    <p>Your data is stored in a private JSONBin.io bin — free, no subscription needed.</p>
+  </div>
+
+  <div class="section-label">Step 1</div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7;color:var(--muted);">
+    Go to <strong style="color:var(--text)">jsonbin.io</strong> → create a free account → click <strong style="color:var(--text)">CREATE BIN</strong> → paste in <code style="color:var(--accent)">{"version":1,"logs":[]}</code> → click Create. Copy the <strong style="color:var(--text)">Bin ID</strong> shown after creation.
+  </div>
+
+  <div class="section-label">Step 2</div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7;color:var(--muted);">
+    In JSONBin, go to <strong style="color:var(--text)">Account → API Keys</strong> → copy your <strong style="color:var(--text)">Master Key</strong>.
+  </div>
+
+  <div class="section-label">Step 3 — Paste them here</div>
+  <div class="log-field" style="margin-bottom:12px;">
+    <label>MASTER KEY</label>
+    <input type="password" id="input-apikey" placeholder="$2a$10$..." oninput="previewCreds()">
+  </div>
+  <div class="log-field" style="margin-bottom:16px;">
+    <label>BIN ID</label>
+    <input type="text" id="input-binid" placeholder="64f3a..." oninput="previewCreds()">
+  </div>
+  <button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="saveCreds()">Save & Connect</button>
+  <div id="creds-status" style="font-size:13px;text-align:center;color:var(--muted);min-height:20px;"></div>
+
+  <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px;">
+    <div class="section-label">Backup</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" style="flex:1;font-size:13px" onclick="exportData()">Export JSON</button>
+      <label class="btn btn-secondary" style="flex:1;font-size:13px;cursor:pointer;text-align:center">
+        Import JSON<input type="file" accept=".json" style="display:none" onchange="importData(this)">
+      </label>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const SESSIONS = {
+  'upper-a': {
+    name: 'Upper A — Push',
+    day: 'Monday',
+    warmup: [
+      { id: 'ua-w1', name: 'Band Pull-Aparts', target: '2 × 15', note: 'Opens the chest, activates rear delts, sets shoulders back before pressing.' },
+      { id: 'ua-w2', name: 'Empty Bar Overhead Press', target: '2 × 10', note: 'Grooves the pressing pattern and warms the rotator cuff at zero load.' },
+    ],
+    working: [
+      { id: 'ua-1', name: 'Incline Dumbbell Press ✨', target: '1–2 × 6–10', note: 'To failure. Slow 3-sec negative. Natural wrist rotation — joint-friendly for longevity.' },
+      { id: 'ua-2', name: 'Weighted Dips', target: '1 × 6–10', note: 'Full depth. Lean slightly forward for chest emphasis.' },
+      { id: 'ua-3', name: 'Pec Deck or Cable Fly', target: '1 × 10–12', note: 'Finisher. Constant tension through full range. Key for upper chest development.' },
+      { id: 'ua-4', name: 'Landmine Press ★', target: '1 × 8–10', note: 'Single-arm rotational press. Builds shoulder stability.' },
+      { id: 'ua-5', name: 'Cable Lateral Raise ◆', target: '1 × 10–12', note: 'Cable keeps constant tension at the bottom where dumbbells go slack. Better shoulder width stimulus.' },
+      { id: 'ua-6', name: 'Skull Crushers', target: '1 × 8–10', note: 'To failure. Controlled eccentric.' },
+      { id: 'ua-7', name: 'Neck Curl with Plate', target: '1 × 15–20', note: 'Lying face up, plate on forehead. Builds neck flexors.' },
+      { id: 'ua-8', name: 'Wrist Roller', target: '2 × full roll', note: 'Forearm strength and size. Do at the end when grip is already fatigued.' },
+    ]
+  },
+  'lower-a': {
+    name: 'Lower A — Squat',
+    day: 'Tuesday',
+    warmup: [
+      { id: 'la-w1', name: 'Bodyweight Squat to Box', target: '2 × 10', note: 'Controlled sit-and-stand. Wakes up quads and hips without loading the spine.' },
+      { id: 'la-w2', name: 'Leg Swings (front-back + lateral)', target: '2 × 10 each', note: 'Opens hip flexors and adductors before split squats and leg press.' },
+    ],
+    working: [
+      { id: 'la-1', name: 'Bulgarian Split Squat ★', target: '1–2 × 8–10 each', note: 'Outer quad sweep and unilateral strength. Rear foot elevated. Full depth.' },
+      { id: 'la-2', name: 'Leg Press', target: '1–2 × 8–12', note: 'To failure. Maximum bilateral quad loading.' },
+      { id: 'la-3', name: 'Leg Extension (pre-exhaust)', target: '1 × 8–12', note: 'Optional. Superset into Leg Press if quads are lagging.' },
+      { id: 'la-4', name: 'Adductor Machine ◆', target: '1 × 8–12', note: 'Inner thigh development. Fills out the leg from the front.' },
+      { id: 'la-5', name: 'Single-Leg Calf Raise ★', target: '1–2 × 10–15', note: 'Unilateral loading improves ankle stability. Full stretch at bottom.' },
+    ]
+  },
+  'upper-b': {
+    name: 'Upper B — Pull',
+    day: 'Thursday',
+    warmup: [
+      { id: 'ub-w1', name: 'Dead Hang from Pull-Up Bar', target: '2 × 20–30 sec', note: 'Decompresses the spine, activates grip, stretches lats before loading them.' },
+      { id: 'ub-w2', name: 'Face Pulls (band or cable)', target: '2 × 15', note: 'Primes rear delts and external rotators before heavy rowing.' },
+    ],
+    working: [
+      { id: 'ub-1', name: 'Weighted Pull-Ups or Pulldown', target: '1–2 × 6–10', note: 'To failure. Dead hang start. Primary lat width movement for V-taper.' },
+      { id: 'ub-2', name: 'Cable Row (single-arm) ★', target: '1 × 8–10', note: 'Anti-rotation demands. Full retraction.' },
+      { id: 'ub-3', name: 'Bent-Over Barbell Row', target: '1 × 6–10', note: 'Heavy. Brace hard. No momentum.' },
+      { id: 'ub-4', name: 'Reverse Pec Deck ◆', target: '1 × 8–12', note: 'Rear delt isolation. Critical for shoulder health, posture and V-taper.' },
+      { id: 'ub-5', name: 'Face Pulls (working set) ✨', target: '1 × 8–12', note: 'Rear delts + external rotators. Bulletproof shoulder health. Don\'t skip.' },
+      { id: 'ub-6', name: 'Incline DB Curl', target: '1 × 10–12', note: 'Pre-exhaust. Superset into rows if arms are priority.' },
+      { id: 'ub-7', name: 'Barbell Curl', target: '1 × 8–10', note: 'To failure. No swinging.' },
+      { id: 'ub-8', name: 'Neck Curl with Plate', target: '1 × 15–20', note: 'Neck flexor strength. Injury prevention and aesthetics.' },
+      { id: 'ub-9', name: 'Wrist Roller', target: '2 × full roll', note: 'End of session when grip is already fatigued.' },
+    ]
+  },
+  'lower-b': {
+    name: 'Lower B — Hinge',
+    day: 'Friday',
+    warmup: [
+      { id: 'lb-w1', name: 'Hip Hinge with Dowel', target: '2 × 10', note: 'Grooves the RDL pattern at zero load. Essential before any hinge work.' },
+      { id: 'lb-w2', name: 'Active Lying Hamstring Stretch', target: '2 × 10 each', note: 'Flex and extend through the range — active, not passive. Warms hams before loading.' },
+    ],
+    working: [
+      { id: 'lb-1', name: 'Romanian Deadlift ✨', target: '1–2 × 8–10', note: 'Full hip hinge. Slow eccentric. Feel the hamstring stretch.' },
+      { id: 'lb-2', name: 'Nordic Curl or Slow Eccentric Leg Curl ★', target: '1 × 6–8', note: 'Eccentric hamstring strength. Critical for sprint health and tendon resilience.' },
+      { id: 'lb-3', name: 'Lying or Seated Leg Curl', target: '1 × 8–12', note: 'Hamstring size and volume. Complements the nordic curl.' },
+      { id: 'lb-4', name: 'Hip Abductor Machine ◆', target: '1 × 8–12', note: 'Outer glute and hip width. Athletic hip-to-waist shape.' },
+      { id: 'lb-5', name: 'Seated Calf Raise', target: '1–2 × 10–15', note: 'Soleus focused. Full range.' },
+    ]
+  },
+  'sprints': {
+    name: 'Sprints',
+    day: 'Wednesday (optional)',
+    warmup: [
+      { id: 'sp-w1', name: 'Leg Swings (front-to-back)', target: '2 × 10 each', note: '' },
+      { id: 'sp-w2', name: 'Lateral Leg Swings', target: '2 × 10 each', note: '' },
+      { id: 'sp-w3', name: 'High Knees', target: '2 × 20m', note: '' },
+      { id: 'sp-w4', name: 'Butt Kicks', target: '2 × 20m', note: '' },
+      { id: 'sp-w5', name: 'A-Skip', target: '2 × 20m', note: '' },
+      { id: 'sp-w6', name: 'Broad Jumps (optional)', target: '2–3 reps', note: 'Pure power activation.' },
+    ],
+    working: [
+      { id: 'sp-1', name: 'Warm-Up Sprint 1', target: '60m @ 50%', note: 'Relaxed. Just flowing. No pushing. Rest 90 sec after.' },
+      { id: 'sp-2', name: 'Warm-Up Sprint 2', target: '60m @ 70%', note: 'Controlled aggression. Not full speed. Rest 90 sec after.' },
+      { id: 'sp-3', name: 'Working Sprint 1', target: '60m @ 100%', note: 'Full effort. Explosive off the line. Rest 3 min after — non-negotiable.' },
+      { id: 'sp-4', name: 'Working Sprint 2', target: '60m @ 100%', note: 'Full effort. Same intensity as Sprint 1. Rest 3 min after.' },
+      { id: 'sp-5', name: 'Working Sprint 3', target: '60m @ 100%', note: 'Full effort. Done.' },
+    ]
+  }
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentSession = 'upper-a';
+let pendingSession = null;
+let _logsCache = []; // sync cache kept in step with IndexedDB
+
+// Temporary in-session log: { exId: { weight, reps, notes } }
+let sessionLog = {};
+
+function getLogsSync() { return _logsCache; }
+function getLastLog(exId) {
+  for (let i = _logsCache.length - 1; i >= 0; i--) {
+    const entry = _logsCache[i].exercises?.[exId];
+    if (entry) return { ...entry, date: _logsCache[i].date };
+  }
+  return null;
+}
+function getPR(exId) {
+  let best = null;
+  for (const log of _logsCache) {
+    const e = log.exercises?.[exId];
+    if (e && e.weight) { const w = parseFloat(e.weight); if (!best || w > best) best = w; }
+  }
+  return best;
+}
+
+// ─── STORAGE: JSONBin.io ──────────────────────────────────────────────────────
+// All data is stored in your private JSONBin cloud bin.
+// Set your API key and Bin ID once via the Settings screen.
+const JSONBIN_URL = 'https://api.jsonbin.io/v3/b';
+
+function getCreds() {
+  return {
+    key: localStorage.getItem('hd_apikey') || '',
+    bin: localStorage.getItem('hd_binid') || ''
+  };
+}
+
+function credsSet() {
+  const { key, bin } = getCreds();
+  return key && bin;
+}
+
+async function loadLogsIntoCache() {
+  if (!credsSet()) { _logsCache = []; return; }
+  const { key, bin } = getCreds();
+  try {
+    const res = await fetch(`${JSONBIN_URL}/${bin}/latest`, {
+      headers: { 'X-Master-Key': key }
+    });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    _logsCache = ((data.record && data.record.logs) || [])
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  } catch (e) {
+    console.error('Load failed:', e);
+    _logsCache = [];
+  }
+}
+
+async function saveLogs(logs) {
+  _logsCache = logs;
+  if (!credsSet()) return;
+  const { key, bin } = getCreds();
+  await fetch(`${JSONBIN_URL}/${bin}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
+    body: JSON.stringify({ version: 1, logs })
+  });
+}
+
+async function addLog(entry) {
+  await saveLogs([..._logsCache, entry]);
+}
+
+async function deleteLog(id) {
+  await saveLogs(_logsCache.filter(l => l.id !== String(id)));
+}
+
+function updateAutoSaveStatus() {
+  const el = document.getElementById('autosave-status');
+  if (!el) return;
+  if (credsSet()) {
+    el.textContent = '✓ Saving to cloud';
+    el.style.color = 'var(--green)';
+  } else {
+    el.innerHTML = '<span style="cursor:pointer;text-decoration:underline" onclick="switchTab(\'settings\')">⚠️ Set up cloud storage →</span>';
+    el.style.color = 'var(--accent)';
+  }
+}
+
+// ─── EXPORT / IMPORT ──────────────────────────────────────────────────────────
+async function exportData() {
+  const logs = _logsCache;
+  const blob = new Blob([JSON.stringify({ version: 1, logs }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `heavy_duty_log_${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const incoming = data.logs || (Array.isArray(data) ? data : null);
+      if (!incoming) { alert('Unrecognized file format.'); return; }
+      const existing = _logsCache;
+      const existingIds = new Set(existing.map(l => l.id));
+      const toAdd = incoming.filter(l => !existingIds.has(l.id));
+      const merged = [...existing, ...toAdd].sort((a, b) => new Date(a.date) - new Date(b.date));
+      await saveLogs(merged);
+      alert(`Loaded. ${toAdd.length} new sessions added.`);
+      renderHistory();
+      renderProgress();
+    } catch {
+      alert('Could not read file — make sure it\'s a Heavy Duty backup JSON.');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderExercise(ex, isWorking, sessionId) {
+  const lastLog = getLastLog(ex.id);
+  const pr = isWorking ? getPR(ex.id) : null;
+  const current = sessionLog[ex.id] || {};
+
+  let lastLogHtml = '';
+  if (lastLog && (lastLog.weight || lastLog.reps)) {
+    const isPR = pr && parseFloat(lastLog.weight) >= pr;
+    lastLogHtml = `<div class="last-log">
+      <span class="label">Last:</span>
+      <span>${lastLog.weight ? lastLog.weight + ' lbs' : ''}${lastLog.weight && lastLog.reps ? ' · ' : ''}${lastLog.reps ? lastLog.reps + ' reps' : ''}</span>
+      ${isPR ? '<span class="pr-badge">PR</span>' : ''}
+      <span class="label" style="margin-left:auto">${formatDate(lastLog.date)}</span>
+    </div>`;
+  }
+
+  const weightInput = isWorking ? `
+    <div class="log-row">
+      <div class="log-field">
+        <label>WEIGHT (lbs)</label>
+        <input type="number" inputmode="decimal" placeholder="${lastLog?.weight || '0'}" value="${current.weight || ''}"
+          onchange="updateLog('${ex.id}','weight',this.value)">
+      </div>
+      <div class="log-field">
+        <label>REPS</label>
+        <input type="number" inputmode="numeric" placeholder="${lastLog?.reps || '0'}" value="${current.reps || ''}"
+          onchange="updateLog('${ex.id}','reps',this.value)">
+      </div>
+    </div>` : '';
+
+  return `<div class="exercise-card" id="card-${ex.id}">
+    <div class="exercise-header" onclick="toggleCard('${ex.id}')">
+      <div>
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-target">${ex.target}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        ${current.weight || current.reps ? '<span style="color:var(--green);font-size:11px;font-weight:700">✓</span>' : ''}
+        <span class="exercise-chevron">▼</span>
+      </div>
+    </div>
+    ${ex.note ? `<div class="exercise-note">${ex.note}</div>` : ''}
+    <div class="log-form">
+      ${lastLogHtml}
+      ${weightInput}
+      <div class="log-field" style="margin-bottom:10px;">
+        <label>NOTES</label>
+        <textarea placeholder="Technique, how it felt..." onchange="updateLog('${ex.id}','notes',this.value)">${current.notes || ''}</textarea>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderSession(sessionId) {
+  const s = SESSIONS[sessionId];
+  const warmupEl = document.getElementById(`warmup-${sessionId}`);
+  const workingEl = document.getElementById(`working-${sessionId}`);
+  if (!warmupEl || !workingEl) return;
+  warmupEl.innerHTML = s.warmup.map(e => renderExercise(e, false, sessionId)).join('');
+  workingEl.innerHTML = s.working.map(e => renderExercise(e, true, sessionId)).join('');
+}
+
+function renderSprintSession() {
+  const s = SESSIONS['sprints'];
+  const prepEl = document.getElementById('sprint-prep');
+  const setsEl = document.getElementById('sprint-sets');
+  if (!prepEl || !setsEl) return;
+  prepEl.innerHTML = s.warmup.map(e => renderExercise(e, false, 'sprints')).join('');
+  setsEl.innerHTML = s.working.map(e => renderExercise(e, true, 'sprints')).join('');
+}
+
+// ─── HISTORY ──────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const logs = _logsCache.slice().reverse();
+  const el = document.getElementById('history-content');
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📓</div><p>No sessions logged yet.<br>Complete your first workout to see history.</p></div>`;
+    return;
+  }
+  let html = '';
+  for (const log of logs) {
+    const s = SESSIONS[log.sessionId];
+    if (!s) continue;
+    let exHtml = '';
+    const allEx = [...s.warmup, ...s.working];
+    for (const ex of allEx) {
+      const e = log.exercises?.[ex.id];
+      if (!e || (!e.weight && !e.reps && !e.notes)) continue;
+      exHtml += `<div class="history-entry">
+        <div>
+          <div class="history-ex-name">${ex.name}</div>
+          ${e.notes ? `<div class="history-ex-note">${e.notes}</div>` : ''}
+        </div>
+        <div class="history-ex-vals">${e.weight ? e.weight + ' lbs' : ''}${e.weight && e.reps ? ' · ' : ''}${e.reps ? e.reps + ' reps' : ''}</div>
+      </div>`;
+    }
+    const feelings = ['😵','😤','💪','🔥','⚡'];
+    html += `<div class="history-session-card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <div class="history-session-name">${s.name}</div>
+        <div style="font-size:12px;color:var(--muted)">${formatDateFull(log.date)}</div>
+      </div>
+      ${exHtml || '<div style="color:var(--muted);font-size:13px">No exercises logged</div>'}
+      ${log.feeling ? `<div class="history-feeling">${feelings[log.feeling-1]} ${log.notes || ''}</div>` : (log.notes ? `<div class="history-feeling">${log.notes}</div>` : '')}
+      <button class="delete-session-btn" onclick="deleteSession('${log.id}')">Delete</button>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ─── PROGRESS ─────────────────────────────────────────────────────────────────
+function renderProgress() {
+  const el = document.getElementById('progress-content');
+  const logs = _logsCache;
+  if (logs.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📈</div><p>Log some sessions first to see your progress.</p></div>`;
+    return;
+  }
+
+  // Group PRs by session
+  let html = '';
+  for (const [sid, s] of Object.entries(SESSIONS)) {
+    if (sid === 'sprints') continue;
+    let rows = '';
+    for (const ex of s.working) {
+      // Find all logs for this exercise
+      const exLogs = [];
+      for (const log of logs) {
+        const e = log.exercises?.[ex.id];
+        if (e && e.weight) exLogs.push({ date: log.date, weight: parseFloat(e.weight), reps: e.reps });
+      }
+      if (exLogs.length === 0) continue;
+      const pr = Math.max(...exLogs.map(l => l.weight));
+      const latest = exLogs[exLogs.length - 1];
+      const prev = exLogs.length > 1 ? exLogs[exLogs.length - 2] : null;
+      const trend = prev ? (latest.weight > prev.weight ? '↑' : latest.weight < prev.weight ? '↓' : '→') : '';
+      const trendColor = trend === '↑' ? 'var(--green)' : trend === '↓' ? 'var(--red)' : 'var(--muted)';
+      rows += `<div class="progress-row">
+        <div>
+          <div class="progress-ex">${ex.name}</div>
+          <div class="progress-trend" style="color:${trendColor}">${trend} ${latest.weight} lbs × ${latest.reps || '?'} reps${pr > latest.weight ? ` · PR: ${pr} lbs` : ' · PR'}</div>
+        </div>
+        <div class="progress-vals">${latest.weight} lbs</div>
+      </div>`;
+    }
+    if (rows) {
+      html += `<div class="progress-screen-section"><h3>${s.name}</h3>${rows}</div>`;
+    }
+  }
+  el.innerHTML = html || `<div class="empty-state"><div class="icon">📈</div><p>Log weight data to track progress.</p></div>`;
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────────────────────
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  card.classList.toggle('open');
+}
+
+function updateLog(exId, field, value) {
+  if (!sessionLog[exId]) sessionLog[exId] = {};
+  sessionLog[exId][field] = value;
+  // Update checkmark
+  const card = document.getElementById('card-' + exId);
+  if (card) {
+    const header = card.querySelector('.exercise-header');
+    const existing = header.querySelector('[data-check]');
+    if ((sessionLog[exId].weight || sessionLog[exId].reps) && !existing) {
+      const badge = document.createElement('span');
+      badge.setAttribute('data-check', '1');
+      badge.style.cssText = 'color:var(--green);font-size:11px;font-weight:700';
+      badge.textContent = '✓';
+      header.querySelector('div:last-child').prepend(badge);
+    }
+  }
+}
+
+async function finishSession(sid) {
+  if (!confirm('Save this session?')) return;
+  const entry = {
+    id: Date.now().toString(),
+    sessionId: sid,
+    date: new Date().toISOString(),
+    exercises: { ...sessionLog }
+  };
+  sessionLog = {};
+  await addLog(entry);
+  if (sid !== 'sprints') renderSession(sid);
+  else renderSprintSession();
+  alert('Session saved! 💪');
+}
+
+async function deleteSession(id) {
+  if (!confirm('Delete this session log?')) return;
+  await deleteLog(id);
+  renderHistory();
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+function previewCreds() {
+  // nothing needed live
+}
+
+async function saveCreds() {
+  const key = document.getElementById('input-apikey').value.trim();
+  const bin = document.getElementById('input-binid').value.trim();
+  const statusEl = document.getElementById('creds-status');
+  if (!key || !bin) { statusEl.textContent = 'Please fill in both fields.'; return; }
+  statusEl.textContent = 'Testing connection...';
+  statusEl.style.color = 'var(--muted)';
+  try {
+    const res = await fetch(`${JSONBIN_URL}/${bin}/latest`, {
+      headers: { 'X-Master-Key': key }
+    });
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    localStorage.setItem('hd_apikey', key);
+    localStorage.setItem('hd_binid', bin);
+    const data = await res.json();
+    _logsCache = ((data.record && data.record.logs) || [])
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    statusEl.textContent = '✓ Connected! Your data is loading.';
+    statusEl.style.color = 'var(--green)';
+    updateAutoSaveStatus();
+  } catch (e) {
+    statusEl.textContent = `Connection failed: ${e.message}. Double-check your key and bin ID.`;
+    statusEl.style.color = 'var(--red)';
+  }
+}
+
+function loadCredsIntoForm() {
+  const { key, bin } = getCreds();
+  if (key) document.getElementById('input-apikey').value = key;
+  if (bin) document.getElementById('input-binid').value = bin;
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(id) {
+  currentSession = id;
+  const ids = ['upper-a','lower-a','upper-b','lower-b','sprints','history','progress','settings'];
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ids[i] === id));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  if (id === 'history') renderHistory();
+  else if (id === 'progress') renderProgress();
+  else if (id === 'sprints') renderSprintSession();
+  else if (id === 'settings') loadCredsIntoForm();
+  else renderSession(id);
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 86400000);
+  if (diff === 0) return 'today';
+  if (diff === 1) return 'yesterday';
+  if (diff < 7) return `${diff}d ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function formatDateFull(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+(async () => {
+  await loadLogsIntoCache();
+  renderSession('upper-a');
+  updateAutoSaveStatus();
+})();
+</script>
+</body>
+</html>
