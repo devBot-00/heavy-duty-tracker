@@ -627,10 +627,9 @@ function renderHistory() {
           <div class="history-ex-name">${ex.name}</div>
           ${e.notes ? `<div class="history-ex-note">${e.notes}</div>` : ''}
         </div>
-        <div class="history-ex-vals" style="color:${hColor}">${e.weight ? e.weight + ' lbs' : ''}${e.weight && e.reps ? ' · ' : ''}${e.reps ? e.reps + ' reps' : ''}</div>
+        <div class="history-ex-vals" style="color:${SESSION_COLORS[log.sessionId] || 'var(--text)'}">${e.weight ? e.weight + ' lbs' : ''}${e.weight && e.reps ? ' · ' : ''}${e.reps ? e.reps + ' reps' : ''}</div>
       </div>`;
     }
-    const feelings = ['😵','😤','💪','🔥','⚡'];
     const hColor = SESSION_COLORS[log.sessionId] || 'var(--text)';
     html += `<div class="history-session-card">
       <div style="display:flex;justify-content:space-between;align-items:baseline;">
