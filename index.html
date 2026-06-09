@@ -408,7 +408,8 @@ const SESSIONS = {
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let currentSession = 'upper-a';
 let pendingSession = null;
-let _logsCache = []; // sync cache kept in step with IndexedDB
+let _logsCache = [];
+let _customExercises = {}; // { 'upper-a': [{id, name, target, note}], ... }
 
 // Temporary in-session log: { exId: { weight, reps, notes } }
 let sessionLog = {};
@@ -448,7 +449,7 @@ function credsSet() {
 }
 
 async function loadLogsIntoCache() {
-  if (!credsSet()) { _logsCache = []; return; }
+  if (!credsSet()) { _logsCache = []; _customExercises = {}; return; }
   const { key, bin } = getCreds();
   try {
     const res = await fetch(`${JSONBIN_URL}/${bin}/latest`, {
@@ -456,31 +457,51 @@ async function loadLogsIntoCache() {
     });
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
-    _logsCache = ((data.record && data.record.logs) || [])
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    const record = data.record || {};
+    _logsCache = (record.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
+    _customExercises = record.customExercises || {};
   } catch (e) {
     console.error('Load failed:', e);
     _logsCache = [];
+    _customExercises = {};
   }
 }
 
-async function saveLogs(logs) {
-  _logsCache = logs;
+async function saveAll() {
   if (!credsSet()) return;
   const { key, bin } = getCreds();
   await fetch(`${JSONBIN_URL}/${bin}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
-    body: JSON.stringify({ version: 1, logs })
+    body: JSON.stringify({ version: 1, logs: _logsCache, customExercises: _customExercises })
   });
 }
 
+async function saveLogs(logs) {
+  _logsCache = logs;
+  await saveAll();
+}
+
 async function addLog(entry) {
-  await saveLogs([..._logsCache, entry]);
+  _logsCache = [..._logsCache, entry];
+  await saveAll();
 }
 
 async function deleteLog(id) {
-  await saveLogs(_logsCache.filter(l => l.id !== String(id)));
+  _logsCache = _logsCache.filter(l => l.id !== String(id));
+  await saveAll();
+}
+
+async function addCustomExercise(sessionId, exercise) {
+  if (!_customExercises[sessionId]) _customExercises[sessionId] = [];
+  _customExercises[sessionId].push(exercise);
+  await saveAll();
+}
+
+async function deleteCustomExercise(sessionId, exerciseId) {
+  if (!_customExercises[sessionId]) return;
+  _customExercises[sessionId] = _customExercises[sessionId].filter(e => e.id !== exerciseId);
+  await saveAll();
 }
 
 function updateAutoSaveStatus() {
@@ -572,6 +593,7 @@ function renderExercise(ex, isWorking, sessionId) {
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
         ${current.weight || current.reps ? '<div class="done-check">✓</div>' : ''}
+        ${ex.custom ? `<button onclick="event.stopPropagation();confirmDeleteExercise('${sessionId}','${ex.id}')" style="background:none;border:none;color:#EF4444;font-size:18px;cursor:pointer;padding:2px 4px;line-height:1">×</button>` : ''}
         <span class="exercise-chevron">▼</span>
       </div>
     </div>
@@ -593,7 +615,11 @@ function renderSession(sessionId) {
   const workingEl = document.getElementById(`working-${sessionId}`);
   if (!warmupEl || !workingEl) return;
   warmupEl.innerHTML = s.warmup.map(e => renderExercise(e, false, sessionId)).join('');
-  workingEl.innerHTML = s.working.map(e => renderExercise(e, true, sessionId)).join('');
+  const custom = (_customExercises[sessionId] || []).map(e => renderExercise({...e, custom: true}, true, sessionId));
+  workingEl.innerHTML =
+    s.working.map(e => renderExercise(e, true, sessionId)).join('') +
+    custom.join('') +
+    `<button onclick="showAddExercise('${sessionId}')" style="width:100%;margin-top:4px;padding:12px;border-radius:12px;border:2px dashed var(--border);background:none;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;">+ Add Exercise</button>`;
 }
 
 function renderSprintSession() {
@@ -973,6 +999,66 @@ function formatDateFull(iso) {
   const firstTab = document.getElementById('stab-upper-a');
   if (firstTab) { firstTab.style.background = 'var(--upper-a)'; firstTab.style.color = '#fff'; }
 })();
+// ─── CUSTOM EXERCISES ─────────────────────────────────────────────────────────
+let _addExSessionId = null;
+
+function showAddExercise(sessionId) {
+  _addExSessionId = sessionId;
+  document.getElementById('add-ex-name').value = '';
+  document.getElementById('add-ex-target').value = '';
+  document.getElementById('add-ex-note').value = '';
+  document.getElementById('add-ex-modal').style.display = 'flex';
+}
+
+function closeAddExercise() {
+  document.getElementById('add-ex-modal').style.display = 'none';
+  _addExSessionId = null;
+}
+
+async function saveNewExercise() {
+  const name = document.getElementById('add-ex-name').value.trim();
+  if (!name) { alert('Exercise name is required.'); return; }
+  const sid = _addExSessionId;
+  const exercise = {
+    id: 'custom-' + Date.now(),
+    name,
+    target: document.getElementById('add-ex-target').value.trim() || '1 × 8–12',
+    note: document.getElementById('add-ex-note').value.trim(),
+    custom: true
+  };
+  closeAddExercise();
+  await addCustomExercise(sid, exercise);
+  renderSession(sid);
+}
+
+async function confirmDeleteExercise(sessionId, exerciseId) {
+  if (!confirm('Remove this exercise?')) return;
+  await deleteCustomExercise(sessionId, exerciseId);
+  renderSession(sessionId);
+}
 </script>
+
+<!-- ADD EXERCISE MODAL -->
+<div id="add-ex-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;align-items:flex-end;justify-content:center;">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:600px;padding:24px;padding-bottom:max(24px,env(safe-area-inset-bottom));">
+    <div style="font-size:17px;font-weight:800;margin-bottom:16px;">Add Exercise</div>
+    <div class="log-field" style="margin-bottom:12px;">
+      <label>EXERCISE NAME</label>
+      <input type="text" id="add-ex-name" placeholder="e.g. Cable Crossover">
+    </div>
+    <div class="log-field" style="margin-bottom:12px;">
+      <label>SETS × REPS</label>
+      <input type="text" id="add-ex-target" placeholder="1 × 8–12">
+    </div>
+    <div class="log-field" style="margin-bottom:16px;">
+      <label>NOTES (optional)</label>
+      <textarea id="add-ex-note" placeholder="Cues, technique..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" onclick="closeAddExercise()" style="flex:1">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewExercise()" style="flex:2;margin-top:0">Add</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
