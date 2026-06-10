@@ -327,12 +327,12 @@ const SESSIONS = {
     working: [
       { id: 'ua-1', name: 'Incline Dumbbell Press ✨', target: '1–2 × 6–10', note: 'To failure. Slow 3-sec negative. Natural wrist rotation — joint-friendly for longevity.' },
       { id: 'ua-2', name: 'Weighted Dips', target: '1 × 6–10', note: 'Full depth. Lean slightly forward for chest emphasis.' },
-      { id: 'ua-3', name: 'Pec Deck or Cable Fly', target: '1 × 10–12', note: 'Finisher. Constant tension through full range. Key for upper chest development.' },
-      { id: 'ua-4', name: 'Landmine Press ★', target: '1 × 8–10', note: 'Single-arm rotational press. Builds shoulder stability.' },
-      { id: 'ua-5', name: 'Cable Lateral Raise ◆', target: '1 × 10–12', note: 'Cable keeps constant tension at the bottom where dumbbells go slack. Better shoulder width stimulus.' },
-      { id: 'ua-6', name: 'Skull Crushers', target: '1 × 8–10', note: 'To failure. Controlled eccentric.' },
-      { id: 'ua-7', name: 'Neck Curl with Plate', target: '1 × 15–20', note: 'Lying face up, plate on forehead. Builds neck flexors.' },
-      { id: 'ua-8', name: 'Wrist Roller', target: '2 × full roll', note: 'Forearm strength and size. Do at the end when grip is already fatigued.' },
+      { id: 'ua-3', name: 'Pec Deck or Cable Fly', target: '1 × 6–10', note: 'PRE-EXHAUST — do this FIRST. Isolates chest so triceps don\'t cut the press short. Constant tension, full range.' },
+      { id: 'ua-1', name: 'Incline Dumbbell Press', target: '1–2 × 6–10', note: 'To failure. Slow 3-sec negative. Chest is pre-exhausted from the fly — the chest will fail before the triceps.' },
+      { id: 'ua-2', name: 'Weighted Dips', target: '1 × 6–10', note: 'Full depth. Lean slightly forward for chest emphasis. Take to absolute failure.' },
+      { id: 'ua-9', name: 'Seated DB Overhead Press', target: '1–2 × 6–10', note: 'PRIMARY SHOULDER COMPOUND. Straight overhead loading drives front and side delt stimulus. To failure.' },
+      { id: 'ua-5', name: 'Cable Lateral Raise', target: '1 × 8–12', note: 'Constant tension at the bottom where dumbbells go slack. Small muscle — higher reps appropriate.' },
+      { id: 'ua-10', name: 'Overhead Cable Tricep Extension', target: '1 × 8–12', note: 'Loaded stretch on the long head, constant cable tension, kinder on the elbow joint. To failure.' },
     ]
   },
   'lower-a': {
@@ -340,14 +340,15 @@ const SESSIONS = {
     day: 'Tuesday',
     warmup: [
       { id: 'la-w1', name: 'Bodyweight Squat to Box', target: '2 × 10', note: 'Controlled sit-and-stand. Wakes up quads and hips without loading the spine.' },
-      { id: 'la-w2', name: 'Leg Swings (front-back + lateral)', target: '2 × 10 each', note: 'Opens hip flexors and adductors before split squats and leg press.' },
+      { id: 'la-w2', name: 'Leg Swings (front-back + lateral)', target: '2 × 10 each', note: 'Opens hip flexors and adductors before split squats and hack squat.' },
     ],
     working: [
-      { id: 'la-1', name: 'Bulgarian Split Squat ★', target: '1–2 × 8–10 each', note: 'Outer quad sweep and unilateral strength. Rear foot elevated. Full depth.' },
-      { id: 'la-2', name: 'Leg Press', target: '1–2 × 8–12', note: 'To failure. Maximum bilateral quad loading.' },
-      { id: 'la-3', name: 'Leg Extension (pre-exhaust)', target: '1 × 8–12', note: 'Optional. Superset into Leg Press if quads are lagging.' },
-      { id: 'la-4', name: 'Adductor Machine ◆', target: '1 × 8–12', note: 'Inner thigh development. Fills out the leg from the front.' },
-      { id: 'la-5', name: 'Single-Leg Calf Raise ★', target: '1–2 × 10–15', note: 'Unilateral loading improves ankle stability. Full stretch at bottom.' },
+      { id: 'la-1', name: 'Bulgarian Split Squat', target: '1–2 × 6–10 each', note: 'Outer quad sweep and unilateral strength. Rear foot elevated, full depth. Leads the session.' },
+      { id: 'la-6', name: 'Hack Squat', target: '1–2 × 6–10', note: 'Replaces leg press. Deeper range, more quad stretch, upright torso. Machine-stabilized for safe failure. Respect depth.' },
+      { id: 'la-3', name: 'Leg Extension (pre-exhaust)', target: '1 × 6–10', note: 'OPTIONAL. Superset into hack squat if quads are lagging. Not a default.' },
+      { id: 'la-4', name: 'Adductor Machine', target: '1 × 6–10', note: 'Inner thigh development. Most cuttable if recovery is an issue.' },
+      { id: 'la-5', name: 'Single-Leg Calf Raise', target: '1–2 × 8–12', note: 'Unilateral loading. Full stretch at bottom. Slow-twitch dominant — higher reps appropriate.' },
+      { id: 'la-7', name: 'Suitcase Carry', target: '2–3 × 30–40m', note: 'MANDATORY AB SLOT. Single-arm farmer\'s carry. Anti-lateral flexion, grip, full-body tension. Load it and log it.' },
     ]
   },
   'upper-b': {
@@ -358,15 +359,12 @@ const SESSIONS = {
       { id: 'ub-w2', name: 'Face Pulls (band or cable)', target: '2 × 15', note: 'Primes rear delts and external rotators before heavy rowing.' },
     ],
     working: [
-      { id: 'ub-1', name: 'Weighted Pull-Ups or Pulldown', target: '1–2 × 6–10', note: 'To failure. Dead hang start. Primary lat width movement for V-taper.' },
-      { id: 'ub-2', name: 'Cable Row (single-arm) ★', target: '1 × 8–10', note: 'Anti-rotation demands. Full retraction.' },
-      { id: 'ub-3', name: 'Bent-Over Barbell Row', target: '1 × 6–10', note: 'Heavy. Brace hard. No momentum.' },
-      { id: 'ub-4', name: 'Reverse Pec Deck ◆', target: '1 × 8–12', note: 'Rear delt isolation. Critical for shoulder health, posture and V-taper.' },
-      { id: 'ub-5', name: 'Face Pulls (working set) ✨', target: '1 × 8–12', note: 'Rear delts + external rotators. Bulletproof shoulder health. Don\'t skip.' },
-      { id: 'ub-6', name: 'Incline DB Curl', target: '1 × 10–12', note: 'Pre-exhaust. Superset into rows if arms are priority.' },
-      { id: 'ub-7', name: 'Barbell Curl', target: '1 × 8–10', note: 'To failure. No swinging.' },
-      { id: 'ub-8', name: 'Neck Curl with Plate', target: '1 × 15–20', note: 'Neck flexor strength. Injury prevention and aesthetics.' },
-      { id: 'ub-9', name: 'Wrist Roller', target: '2 × full roll', note: 'End of session when grip is already fatigued.' },
+      { id: 'ub-1', name: 'Weighted Pull-Ups / Bodyweight Pull-Ups', target: '1–2 × 6–10', note: 'Primary lat width. Dead hang start, full range. Use bodyweight until you hit top of range — then add 5 lbs.' },
+      { id: 'ub-10', name: 'Chest-Supported Machine Row', target: '1 × 6–10', note: 'Pad eliminates lower back fatigue and momentum. True failure stimulus on lats and mid-back. Full retraction at top.' },
+      { id: 'ub-2', name: 'Single-Arm Cable Row', target: '1 × 6–10', note: 'Anti-rotation demand. Forces core to resist lateral flexion. Full retraction each rep.' },
+      { id: 'ub-11', name: 'Rear Delt Fly', target: '1 × 8–12', note: 'Machine, cable, or incline DB. Small muscle — higher reps appropriate. Rear delt — not traps — should end the set.' },
+      { id: 'ub-12', name: 'Cable Lateral Raise', target: '1 × 8–12', note: 'SECOND SHOULDER SLOT. Constant tension throughout. Small isolation muscle — higher reps appropriate.' },
+      { id: 'ub-6', name: 'Incline DB Curl', target: '1 × 8–12', note: 'Full stretch at the bottom. To failure. Arms trained as byproduct of rows and pull-ups.' },
     ]
   },
   'lower-b': {
@@ -377,11 +375,12 @@ const SESSIONS = {
       { id: 'lb-w2', name: 'Active Lying Hamstring Stretch', target: '2 × 10 each', note: 'Flex and extend through the range — active, not passive. Warms hams before loading.' },
     ],
     working: [
-      { id: 'lb-1', name: 'Romanian Deadlift ✨', target: '1–2 × 8–10', note: 'Full hip hinge. Slow eccentric. Feel the hamstring stretch.' },
-      { id: 'lb-2', name: 'Nordic Curl or Slow Eccentric Leg Curl ★', target: '1 × 6–8', note: 'Eccentric hamstring strength. Critical for sprint health and tendon resilience.' },
-      { id: 'lb-3', name: 'Lying or Seated Leg Curl', target: '1 × 8–12', note: 'Hamstring size and volume. Complements the nordic curl.' },
-      { id: 'lb-4', name: 'Hip Abductor Machine ◆', target: '1 × 8–12', note: 'Outer glute and hip width. Athletic hip-to-waist shape.' },
-      { id: 'lb-5', name: 'Seated Calf Raise', target: '1–2 × 10–15', note: 'Soleus focused. Full range.' },
+      { id: 'lb-1', name: 'Romanian Deadlift', target: '1–2 × 6–10', note: 'Full hip hinge. Slow eccentric. Feel the hamstring stretch at the bottom. Primary posterior chain builder.' },
+      { id: 'lb-2', name: 'Nordic Curl or Slow Eccentric Leg Curl', target: '1 × 6–8', note: 'LONGEVITY. Eccentric hamstring strength — lower reps intentional. Critical for sprint health. Non-negotiable if you sprint Wednesdays.' },
+      { id: 'lb-3', name: 'Lying or Seated Leg Curl', target: '1 × 6–10', note: 'Hamstring volume. Complements nordic — one for tendon health, one for muscle fullness. Alternate weekly with nordics if session feels heavy.' },
+      { id: 'lb-4', name: 'Hip Abductor Machine', target: '1 × 6–10', note: 'Outer glute and hip width. Athletic hip-to-waist taper from behind. Full range, controlled.' },
+      { id: 'lb-5', name: 'Seated Calf Raise', target: '1–2 × 8–12', note: 'Soleus focused — different stimulus to single-leg raise on Lower A. Full range.' },
+      { id: 'lb-6', name: 'Pallof Press', target: '2–3 × 10–12 each side', note: 'MANDATORY AB SLOT. Anti-rotation hold. Cable at chest height, press straight out and hold. Load it progressively.' },
     ]
   },
   'sprints': {
@@ -449,7 +448,13 @@ function credsSet() {
 }
 
 async function loadLogsIntoCache() {
-  if (!credsSet()) { _logsCache = []; _customExercises = {}; return; }
+  if (!credsSet()) {
+    // Fall back to localStorage
+    const local = JSON.parse(localStorage.getItem('hd_data') || '{}');
+    _logsCache = (local.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
+    _customExercises = local.customExercises || {};
+    return;
+  }
   const { key, bin } = getCreds();
   try {
     const res = await fetch(`${JSONBIN_URL}/${bin}/latest`, {
@@ -460,20 +465,26 @@ async function loadLogsIntoCache() {
     const record = data.record || {};
     _logsCache = (record.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
     _customExercises = record.customExercises || {};
+    // Keep localStorage in sync
+    localStorage.setItem('hd_data', JSON.stringify({ version: 1, logs: _logsCache, customExercises: _customExercises }));
   } catch (e) {
-    console.error('Load failed:', e);
-    _logsCache = [];
-    _customExercises = {};
+    console.error('Load failed, falling back to localStorage:', e);
+    const local = JSON.parse(localStorage.getItem('hd_data') || '{}');
+    _logsCache = (local.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
+    _customExercises = local.customExercises || {};
   }
 }
 
 async function saveAll() {
+  const payload = { version: 1, logs: _logsCache, customExercises: _customExercises };
+  // Always write to localStorage as a fallback
+  localStorage.setItem('hd_data', JSON.stringify(payload));
   if (!credsSet()) return;
   const { key, bin } = getCreds();
   await fetch(`${JSONBIN_URL}/${bin}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
-    body: JSON.stringify({ version: 1, logs: _logsCache, customExercises: _customExercises })
+    body: JSON.stringify(payload)
   });
 }
 
@@ -644,13 +655,13 @@ function renderHistory() {
     const s = SESSIONS[log.sessionId];
     if (!s) continue;
     let exHtml = '';
-    const allEx = [...s.warmup, ...s.working];
+    const allEx = [...s.warmup, ...s.working, ...(_customExercises[log.sessionId] || [])];
     for (const ex of allEx) {
       const e = log.exercises?.[ex.id];
       if (!e || (!e.weight && !e.reps && !e.notes)) continue;
       exHtml += `<div class="history-entry">
         <div>
-          <div class="history-ex-name">${ex.name}</div>
+          <div class="history-ex-name">${ex.name}${ex.custom ? ' <span style="font-size:10px;color:var(--muted)">(custom)</span>' : ''}</div>
           ${e.notes ? `<div class="history-ex-note">${e.notes}</div>` : ''}
         </div>
         <div class="history-ex-vals" style="color:${SESSION_COLORS[log.sessionId] || 'var(--text)'}">${e.weight ? e.weight + ' lbs' : ''}${e.weight && e.reps ? ' · ' : ''}${e.reps ? e.reps + ' reps' : ''}</div>
@@ -663,7 +674,7 @@ function renderHistory() {
         <div style="font-size:12px;color:var(--muted)">${formatDateFull(log.date)}</div>
       </div>
       ${exHtml || '<div style="color:var(--muted);font-size:13px">No exercises logged</div>'}
-      ${log.feeling ? `<div class="history-feeling">${feelings[log.feeling-1]} ${log.notes || ''}</div>` : (log.notes ? `<div class="history-feeling">${log.notes}</div>` : '')}
+      ${log.notes ? `<div class="history-feeling">${log.notes}</div>` : ''}
       <button class="delete-session-btn" onclick="deleteSession('${log.id}')">Delete</button>
     </div>`;
   }
