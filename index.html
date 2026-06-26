@@ -518,6 +518,7 @@ let currentSession = 'upper-a';
 let pendingSession = null;
 let _logsCache = [];
 let _customExercises = {}; // { 'upper-a': [{id, name, target, note}], ... }
+let _fitnessLog = {}; // { 'YYYY-MM-DD': { body:{}, nutrition:{}, notes:'' } }
 
 // Temporary in-session log: { exId: { weight, reps, notes } }
 let sessionLog = {};
@@ -562,6 +563,7 @@ async function loadLogsIntoCache() {
     const local = JSON.parse(localStorage.getItem('hd_data') || '{}');
     _logsCache = (local.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
     _customExercises = local.customExercises || {};
+    _fitnessLog = local.fitnessLog || {};
     return;
   }
   const { key, bin } = getCreds();
@@ -574,18 +576,19 @@ async function loadLogsIntoCache() {
     const record = data.record || {};
     _logsCache = (record.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
     _customExercises = record.customExercises || {};
-    // Keep localStorage in sync
-    localStorage.setItem('hd_data', JSON.stringify({ version: 1, logs: _logsCache, customExercises: _customExercises }));
+    _fitnessLog = record.fitnessLog || {};
+    localStorage.setItem('hd_data', JSON.stringify({ version: 1, logs: _logsCache, customExercises: _customExercises, fitnessLog: _fitnessLog }));
   } catch (e) {
     console.error('Load failed, falling back to localStorage:', e);
     const local = JSON.parse(localStorage.getItem('hd_data') || '{}');
     _logsCache = (local.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
     _customExercises = local.customExercises || {};
+    _fitnessLog = local.fitnessLog || {};
   }
 }
 
 async function saveAll() {
-  const payload = { version: 1, logs: _logsCache, customExercises: _customExercises };
+  const payload = { version: 1, logs: _logsCache, customExercises: _customExercises, fitnessLog: _fitnessLog };
   // Always write to localStorage as a fallback
   localStorage.setItem('hd_data', JSON.stringify(payload));
   if (!credsSet()) return;
@@ -1189,10 +1192,9 @@ function ftShiftDay(delta) {
   ftLoadDay();
 }
 
-function ftAllData() { return JSON.parse(localStorage.getItem('fitnessLog') || '{}'); }
-function ftSaveAllData(d) { localStorage.setItem('fitnessLog', JSON.stringify(d)); }
-function ftDayData(k) { return ftAllData()[k] || { body:{}, nutrition:{}, notes:'' }; }
-function ftSetDay(k, d) { const a = ftAllData(); a[k] = d; ftSaveAllData(a); }
+function ftAllData() { return _fitnessLog; }
+function ftDayData(k) { return _fitnessLog[k] || { body:{}, nutrition:{}, notes:'' }; }
+async function ftSetDay(k, d) { _fitnessLog[k] = d; await saveAll(); }
 
 function ftLoadDay() {
   const lbl = document.getElementById('ft-dateLabel');
@@ -1214,7 +1216,7 @@ function ftLoadDay() {
 let ftBodyTimer;
 function ftSaveBody() {
   clearTimeout(ftBodyTimer);
-  ftBodyTimer = setTimeout(() => {
+  ftBodyTimer = setTimeout(async () => {
     const d = ftDayData(ftCurrent);
     d.body = {
       weight: parseFloat(document.getElementById('ft-weight').value) || null,
@@ -1230,7 +1232,7 @@ function ftSaveBody() {
 let ftNotesTimer;
 function ftSaveNotes() {
   clearTimeout(ftNotesTimer);
-  ftNotesTimer = setTimeout(() => {
+  ftNotesTimer = setTimeout(async () => {
     const d = ftDayData(ftCurrent);
     d.notes = document.getElementById('ft-notes').value;
     ftSetDay(ftCurrent, d);
@@ -1252,7 +1254,7 @@ function ftEscHtml(s) {
 let ftNutritionTimer;
 function ftSaveNutrition() {
   clearTimeout(ftNutritionTimer);
-  ftNutritionTimer = setTimeout(() => {
+  ftNutritionTimer = setTimeout(async () => {
     const d = ftDayData(ftCurrent);
     d.nutrition = {
       cals: parseInt(document.getElementById('ft-cals').value) || null,
