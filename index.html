@@ -398,24 +398,14 @@
       <div class="ft-save-flash" id="ft-notesFlash">Saved ✓</div>
     </div>
     <div class="ft-card">
-      <div class="ft-card-title">Nutrition</div>
-      <div class="ft-macro-totals">
-        <div class="ft-macro-chip cals"><span class="val" id="ft-t-cals">0</span><span class="lbl">kcal</span></div>
-        <div class="ft-macro-chip pro"><span class="val" id="ft-t-pro">0</span><span class="lbl">protein g</span></div>
-        <div class="ft-macro-chip carb"><span class="val" id="ft-t-carb">0</span><span class="lbl">carbs g</span></div>
-        <div class="ft-macro-chip fat"><span class="val" id="ft-t-fat">0</span><span class="lbl">fat g</span></div>
+      <div class="ft-card-title">Nutrition — Daily Totals</div>
+      <div class="ft-grid-2">
+        <div class="ft-input-group"><label>Calories (kcal)</label><input type="number" inputmode="numeric" id="ft-cals" placeholder="0" oninput="ftSaveNutrition()"></div>
+        <div class="ft-input-group"><label>Protein (g)</label><input type="number" inputmode="numeric" id="ft-pro" placeholder="0" oninput="ftSaveNutrition()"></div>
+        <div class="ft-input-group"><label>Carbs (g)</label><input type="number" inputmode="numeric" id="ft-carb" placeholder="0" oninput="ftSaveNutrition()"></div>
+        <div class="ft-input-group"><label>Fat (g)</label><input type="number" inputmode="numeric" id="ft-fat" placeholder="0" oninput="ftSaveNutrition()"></div>
       </div>
-      <div class="ft-food-list" id="ft-foodList"></div>
-      <div class="ft-add-form">
-        <div class="ft-input-group"><label>Food / Meal name</label><input type="text" id="ft-fname" placeholder="e.g. Grilled chicken + white rice" autocomplete="off"></div>
-        <div class="ft-grid-4">
-          <div class="ft-input-group"><label>Calories</label><input type="number" inputmode="numeric" id="ft-fcals" placeholder="0"></div>
-          <div class="ft-input-group"><label>Protein</label><input type="number" inputmode="numeric" id="ft-fpro" placeholder="0"></div>
-          <div class="ft-input-group"><label>Carbs</label><input type="number" inputmode="numeric" id="ft-fcarb" placeholder="0"></div>
-          <div class="ft-input-group"><label>Fat</label><input type="number" inputmode="numeric" id="ft-ffat" placeholder="0"></div>
-        </div>
-        <button class="ft-btn ft-btn-primary" onclick="ftAddFood()">+ Add Food</button>
-      </div>
+      <div class="ft-save-flash" id="ft-nutritionFlash">Saved ✓</div>
     </div>
   </div>
 
@@ -1201,7 +1191,7 @@ function ftShiftDay(delta) {
 
 function ftAllData() { return JSON.parse(localStorage.getItem('fitnessLog') || '{}'); }
 function ftSaveAllData(d) { localStorage.setItem('fitnessLog', JSON.stringify(d)); }
-function ftDayData(k) { return ftAllData()[k] || { body:{}, food:[], notes:'' }; }
+function ftDayData(k) { return ftAllData()[k] || { body:{}, nutrition:{}, notes:'' }; }
 function ftSetDay(k, d) { const a = ftAllData(); a[k] = d; ftSaveAllData(a); }
 
 function ftLoadDay() {
@@ -1214,7 +1204,11 @@ function ftLoadDay() {
   const mu = document.getElementById('ft-muscle'); if(mu) mu.value = b.muscle ?? '';
   const wa = document.getElementById('ft-water'); if(wa) wa.value = b.water ?? '';
   const no = document.getElementById('ft-notes'); if(no) no.value = d.notes || '';
-  ftRenderFood(d.food || []);
+  const n = d.nutrition || {};
+  const ca = document.getElementById('ft-cals'); if(ca) ca.value = n.cals ?? '';
+  const pr = document.getElementById('ft-pro');  if(pr) pr.value = n.pro  ?? '';
+  const cb = document.getElementById('ft-carb'); if(cb) cb.value = n.carb ?? '';
+  const ft = document.getElementById('ft-fat');  if(ft) ft.value = n.fat  ?? '';
 }
 
 let ftBodyTimer;
@@ -1255,59 +1249,20 @@ function ftEscHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function ftRenderFood(food) {
-  const list = document.getElementById('ft-foodList');
-  if (!list) return;
-  list.innerHTML = '';
-  let tc=0, tp=0, tcarb=0, tf=0;
-  food.forEach((item, i) => {
-    tc    += item.cals  || 0;
-    tp    += item.pro   || 0;
-    tcarb += item.carb  || 0;
-    tf    += item.fat   || 0;
-    const el = document.createElement('div');
-    el.className = 'ft-food-item';
-    el.innerHTML = `
-      <span class="ft-food-name">${ftEscHtml(item.name)}</span>
-      <div class="ft-food-macros">
-        <span style="color:#D97706">${item.cals}cal</span>
-        <span style="color:var(--green)">${item.pro}p</span>
-        <span style="color:var(--lower-a)">${item.carb}c</span>
-        <span style="color:var(--red)">${item.fat}f</span>
-      </div>
-      <button class="ft-del-btn" onclick="ftDelFood(${i})">×</button>`;
-    list.appendChild(el);
-  });
-  const tc2 = document.getElementById('ft-t-cals'); if(tc2) tc2.textContent = tc;
-  const tp2 = document.getElementById('ft-t-pro');  if(tp2) tp2.textContent = tp;
-  const tc3 = document.getElementById('ft-t-carb'); if(tc3) tc3.textContent = tcarb;
-  const tf2 = document.getElementById('ft-t-fat');  if(tf2) tf2.textContent = tf;
-}
-
-function ftAddFood() {
-  const name = document.getElementById('ft-fname').value.trim();
-  if (!name) { document.getElementById('ft-fname').focus(); return; }
-  const entry = {
-    name,
-    cals: parseInt(document.getElementById('ft-fcals').value)  || 0,
-    pro:  parseInt(document.getElementById('ft-fpro').value)   || 0,
-    carb: parseInt(document.getElementById('ft-fcarb').value)  || 0,
-    fat:  parseInt(document.getElementById('ft-ffat').value)   || 0,
-  };
-  const d = ftDayData(ftCurrent);
-  d.food = d.food || [];
-  d.food.push(entry);
-  ftSetDay(ftCurrent, d);
-  ftRenderFood(d.food);
-  ['ft-fname','ft-fcals','ft-fpro','ft-fcarb','ft-ffat'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-  document.getElementById('ft-fname').focus();
-}
-
-function ftDelFood(i) {
-  const d = ftDayData(ftCurrent);
-  d.food.splice(i, 1);
-  ftSetDay(ftCurrent, d);
-  ftRenderFood(d.food);
+let ftNutritionTimer;
+function ftSaveNutrition() {
+  clearTimeout(ftNutritionTimer);
+  ftNutritionTimer = setTimeout(() => {
+    const d = ftDayData(ftCurrent);
+    d.nutrition = {
+      cals: parseInt(document.getElementById('ft-cals').value) || null,
+      pro:  parseInt(document.getElementById('ft-pro').value)  || null,
+      carb: parseInt(document.getElementById('ft-carb').value) || null,
+      fat:  parseInt(document.getElementById('ft-fat').value)  || null,
+    };
+    ftSetDay(ftCurrent, d);
+    ftFlash('ft-nutritionFlash');
+  }, 600);
 }
 
 function ftSwitchView(v) {
@@ -1332,26 +1287,22 @@ function ftBuildHistory() {
   }
   el.innerHTML = keys.map(k => {
     const d = data[k];
-    const food = d.food || [];
+    const n = d.nutrition || {};
     const b = d.body || {};
-    const tc   = food.reduce((s,f)=>s+(f.cals||0), 0);
-    const tp   = food.reduce((s,f)=>s+(f.pro||0),  0);
-    const tcarb= food.reduce((s,f)=>s+(f.carb||0), 0);
-    const tf   = food.reduce((s,f)=>s+(f.fat||0),  0);
     const bodyRows = [
       b.weight ? `<div class="ft-hist-row"><span>Weight</span><strong>${b.weight} lbs</strong></div>` : '',
       b.bf     ? `<div class="ft-hist-row"><span>Body Fat</span><strong>${b.bf}%</strong></div>` : '',
       b.muscle ? `<div class="ft-hist-row"><span>Muscle Mass</span><strong>${b.muscle} lbs</strong></div>` : '',
       b.water  ? `<div class="ft-hist-row"><span>Water</span><strong>${b.water}%</strong></div>` : '',
     ].join('');
-    const nutRow = tc > 0 ? `
+    const nutRow = n.cals ? `
       <div class="ft-hist-row">
         <span>Nutrition</span>
         <strong>
-          <span style="color:#D97706">${tc} kcal</span>
-          &nbsp;·&nbsp;<span style="color:var(--green)">${tp}g P</span>
-          &nbsp;·&nbsp;<span style="color:var(--lower-a)">${tcarb}g C</span>
-          &nbsp;·&nbsp;<span style="color:var(--red)">${tf}g F</span>
+          <span style="color:#D97706">${n.cals} kcal</span>
+          ${n.pro  ? `&nbsp;·&nbsp;<span style="color:var(--green)">${n.pro}g P</span>` : ''}
+          ${n.carb ? `&nbsp;·&nbsp;<span style="color:var(--lower-a)">${n.carb}g C</span>` : ''}
+          ${n.fat  ? `&nbsp;·&nbsp;<span style="color:var(--red)">${n.fat}g F</span>` : ''}
         </strong>
       </div>` : '';
     const noteRow = d.notes ? `
@@ -1382,7 +1333,7 @@ function ftBuildExport() {
   keys.forEach(k => {
     const d = data[k];
     const b = d.body || {};
-    const food = d.food || [];
+    const n = d.nutrition || {};
     lines.push(`▸ ${ftLabelFor(k).toUpperCase()} (${k})`);
     const bodyParts = [];
     if (b.weight) bodyParts.push(`Weight: ${b.weight} lbs`);
@@ -1390,13 +1341,12 @@ function ftBuildExport() {
     if (b.muscle) bodyParts.push(`Muscle Mass: ${b.muscle} lbs`);
     if (b.water)  bodyParts.push(`Water: ${b.water}%`);
     if (bodyParts.length) lines.push('  Body: ' + bodyParts.join(' | '));
-    if (food.length) {
-      const tc   = food.reduce((s,f)=>s+(f.cals||0), 0);
-      const tp   = food.reduce((s,f)=>s+(f.pro||0),  0);
-      const tcarb= food.reduce((s,f)=>s+(f.carb||0), 0);
-      const tf   = food.reduce((s,f)=>s+(f.fat||0),  0);
-      lines.push(`  Totals: ${tc} kcal | ${tp}g protein | ${tcarb}g carbs | ${tf}g fat`);
-      food.forEach(f => lines.push(`    • ${f.name}: ${f.cals} kcal (${f.pro}P / ${f.carb}C / ${f.fat}F)`));
+    if (n.cals) {
+      const nutParts = [`${n.cals} kcal`];
+      if (n.pro)  nutParts.push(`${n.pro}g protein`);
+      if (n.carb) nutParts.push(`${n.carb}g carbs`);
+      if (n.fat)  nutParts.push(`${n.fat}g fat`);
+      lines.push('  Nutrition: ' + nutParts.join(' | '));
     }
     if (d.notes) lines.push(`  Notes: ${d.notes}`);
     lines.push('');
@@ -1426,16 +1376,6 @@ function ftFallbackCopy(ta, btn) {
   }
 }
 
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.activeElement.id === 'ft-fname') {
-    e.preventDefault();
-    document.getElementById('ft-fcals').focus();
-  }
-  if (e.key === 'Enter' && document.activeElement.id === 'ft-ffat') {
-    e.preventDefault();
-    ftAddFood();
-  }
-});
 </script>
 
 <!-- ADD EXERCISE MODAL -->
