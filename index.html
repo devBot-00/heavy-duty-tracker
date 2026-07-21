@@ -558,32 +558,60 @@ function credsSet() {
 }
 
 async function loadLogsIntoCache() {
+  // Always read localStorage first — it's the most recent successful save
+  const local = JSON.parse(localStorage.getItem('hd_data') || '{}');
+  const localLogs = local.logs || [];
+  const localCustom = local.customExercises || {};
+  const localFitness = local.fitnessLog || {};
+
   if (!credsSet()) {
-    // Fall back to localStorage
-    const local = JSON.parse(localStorage.getItem('hd_data') || '{}');
-    _logsCache = (local.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
-    _customExercises = local.customExercises || {};
-    _fitnessLog = local.fitnessLog || {};
+    _logsCache = localLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+    _customExercises = localCustom;
+    _fitnessLog = localFitness;
     return;
   }
+
   const { key, bin } = getCreds();
   try {
-    const res = await fetch(`${JSONBIN_URL}/${bin}/latest`, {
-      headers: { 'X-Master-Key': key }
-    });
+    const res = await fetch(`${JSONBIN_URL}/${bin}/latest`, { headers: { 'X-Master-Key': key } });
     if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    const record = data.record || {};
-    _logsCache = (record.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
-    _customExercises = record.customExercises || {};
-    _fitnessLog = record.fitnessLog || {};
-    localStorage.setItem('hd_data', JSON.stringify({ version: 1, logs: _logsCache, customExercises: _customExercises, fitnessLog: _fitnessLog }));
+    const record = (await res.json()).record || {};
+    const cloudLogs = record.logs || [];
+    const cloudCustom = record.customExercises || {};
+    const cloudFitness = record.fitnessLog || {};
+
+    // Merge logs: union by id — keep anything from either source
+    const cloudIds = new Set(cloudLogs.map(l => l.id));
+    const mergedLogs = [...cloudLogs, ...localLogs.filter(l => !cloudIds.has(l.id))]
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // Merge customExercises: per session, union by exercise id
+    const mergedCustom = { ...cloudCustom };
+    for (const [sid, exs] of Object.entries(localCustom)) {
+      const cloudExIds = new Set((mergedCustom[sid] || []).map(e => e.id));
+      mergedCustom[sid] = [...(mergedCustom[sid] || []), ...exs.filter(e => !cloudExIds.has(e.id))];
+    }
+
+    // Merge fitnessLog: union by date — localStorage wins for same day (more recent edits)
+    const mergedFitness = { ...cloudFitness, ...localFitness };
+
+    _logsCache = mergedLogs;
+    _customExercises = mergedCustom;
+    _fitnessLog = mergedFitness;
+
+    // Push merged result back to both stores so they stay in sync
+    const payload = { version: 1, logs: _logsCache, customExercises: _customExercises, fitnessLog: _fitnessLog };
+    localStorage.setItem('hd_data', JSON.stringify(payload));
+    fetch(`${JSONBIN_URL}/${bin}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': key },
+      body: JSON.stringify(payload)
+    });
   } catch (e) {
-    console.error('Load failed, falling back to localStorage:', e);
-    const local = JSON.parse(localStorage.getItem('hd_data') || '{}');
-    _logsCache = (local.logs || []).sort((a, b) => new Date(a.date) - new Date(b.date));
-    _customExercises = local.customExercises || {};
-    _fitnessLog = local.fitnessLog || {};
+    console.error('Load failed, using localStorage:', e);
+    _logsCache = localLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+    _customExercises = localCustom;
+    _fitnessLog = localFitness;
   }
 }
 
