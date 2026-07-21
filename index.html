@@ -385,25 +385,25 @@
     <div class="ft-card">
       <div class="ft-card-title">Body Data — from scale scan</div>
       <div class="ft-grid-2">
-        <div class="ft-input-group"><label>Weight (lbs)</label><input type="number" inputmode="decimal" id="ft-weight" placeholder="0.0" oninput="ftSaveBody()"></div>
-        <div class="ft-input-group"><label>Body Fat %</label><input type="number" inputmode="decimal" id="ft-bf" placeholder="0.0" oninput="ftSaveBody()"></div>
-        <div class="ft-input-group"><label>Muscle Mass (lbs)</label><input type="number" inputmode="decimal" id="ft-muscle" placeholder="0.0" oninput="ftSaveBody()"></div>
-        <div class="ft-input-group"><label>Water %</label><input type="number" inputmode="decimal" id="ft-water" placeholder="0.0" oninput="ftSaveBody()"></div>
+        <div class="ft-input-group"><label>Weight (lbs)</label><input type="number" inputmode="decimal" id="ft-weight" placeholder="0.0" oninput="ftSaveBody()" onblur="ftSaveBodyNow()"></div>
+        <div class="ft-input-group"><label>Body Fat %</label><input type="number" inputmode="decimal" id="ft-bf" placeholder="0.0" oninput="ftSaveBody()" onblur="ftSaveBodyNow()"></div>
+        <div class="ft-input-group"><label>Muscle Mass (lbs)</label><input type="number" inputmode="decimal" id="ft-muscle" placeholder="0.0" oninput="ftSaveBody()" onblur="ftSaveBodyNow()"></div>
+        <div class="ft-input-group"><label>Water %</label><input type="number" inputmode="decimal" id="ft-water" placeholder="0.0" oninput="ftSaveBody()" onblur="ftSaveBodyNow()"></div>
       </div>
       <div class="ft-save-flash" id="ft-bodyFlash">Saved ✓</div>
     </div>
     <div class="ft-card">
       <div class="ft-card-title">Notes</div>
-      <textarea class="ft-notes-input" id="ft-notes" placeholder="Sleep quality, energy levels, how training felt, anything notable..." oninput="ftSaveNotes()"></textarea>
+      <textarea class="ft-notes-input" id="ft-notes" placeholder="Sleep quality, energy levels, how training felt, anything notable..." oninput="ftSaveNotes()" onblur="ftSaveNotesNow()"></textarea>
       <div class="ft-save-flash" id="ft-notesFlash">Saved ✓</div>
     </div>
     <div class="ft-card">
       <div class="ft-card-title">Nutrition — Daily Totals</div>
       <div class="ft-grid-2">
-        <div class="ft-input-group"><label>Calories (kcal)</label><input type="number" inputmode="numeric" id="ft-cals" placeholder="0" oninput="ftSaveNutrition()"></div>
-        <div class="ft-input-group"><label>Protein (g)</label><input type="number" inputmode="numeric" id="ft-pro" placeholder="0" oninput="ftSaveNutrition()"></div>
-        <div class="ft-input-group"><label>Carbs (g)</label><input type="number" inputmode="numeric" id="ft-carb" placeholder="0" oninput="ftSaveNutrition()"></div>
-        <div class="ft-input-group"><label>Fat (g)</label><input type="number" inputmode="numeric" id="ft-fat" placeholder="0" oninput="ftSaveNutrition()"></div>
+        <div class="ft-input-group"><label>Calories (kcal)</label><input type="number" inputmode="numeric" id="ft-cals" placeholder="0" oninput="ftSaveNutrition()" onblur="ftSaveNutritionNow()"></div>
+        <div class="ft-input-group"><label>Protein (g)</label><input type="number" inputmode="numeric" id="ft-pro" placeholder="0" oninput="ftSaveNutrition()" onblur="ftSaveNutritionNow()"></div>
+        <div class="ft-input-group"><label>Carbs (g)</label><input type="number" inputmode="numeric" id="ft-carb" placeholder="0" oninput="ftSaveNutrition()" onblur="ftSaveNutritionNow()"></div>
+        <div class="ft-input-group"><label>Fat (g)</label><input type="number" inputmode="numeric" id="ft-fat" placeholder="0" oninput="ftSaveNutrition()" onblur="ftSaveNutritionNow()"></div>
       </div>
       <div class="ft-save-flash" id="ft-nutritionFlash">Saved ✓</div>
     </div>
@@ -1213,31 +1213,47 @@ function ftLoadDay() {
   const ft = document.getElementById('ft-fat');  if(ft) ft.value = n.fat  ?? '';
 }
 
+function ftReadBody() {
+  return {
+    weight: parseFloat(document.getElementById('ft-weight').value) || null,
+    bf:     parseFloat(document.getElementById('ft-bf').value)     || null,
+    muscle: parseFloat(document.getElementById('ft-muscle').value) || null,
+    water:  parseFloat(document.getElementById('ft-water').value)  || null,
+  };
+}
+function ftReadNutrition() {
+  return {
+    cals: parseInt(document.getElementById('ft-cals').value) || null,
+    pro:  parseInt(document.getElementById('ft-pro').value)  || null,
+    carb: parseInt(document.getElementById('ft-carb').value) || null,
+    fat:  parseInt(document.getElementById('ft-fat').value)  || null,
+  };
+}
+
 let ftBodyTimer;
 function ftSaveBody() {
   clearTimeout(ftBodyTimer);
-  ftBodyTimer = setTimeout(async () => {
-    const d = ftDayData(ftCurrent);
-    d.body = {
-      weight: parseFloat(document.getElementById('ft-weight').value) || null,
-      bf:     parseFloat(document.getElementById('ft-bf').value)     || null,
-      muscle: parseFloat(document.getElementById('ft-muscle').value) || null,
-      water:  parseFloat(document.getElementById('ft-water').value)  || null,
-    };
-    ftSetDay(ftCurrent, d);
-    ftFlash('ft-bodyFlash');
-  }, 600);
+  ftBodyTimer = setTimeout(() => ftSaveBodyNow(), 600);
+}
+async function ftSaveBodyNow() {
+  clearTimeout(ftBodyTimer);
+  const d = ftDayData(ftCurrent);
+  d.body = ftReadBody();
+  await ftSetDay(ftCurrent, d);
+  ftFlash('ft-bodyFlash');
 }
 
 let ftNotesTimer;
 function ftSaveNotes() {
   clearTimeout(ftNotesTimer);
-  ftNotesTimer = setTimeout(async () => {
-    const d = ftDayData(ftCurrent);
-    d.notes = document.getElementById('ft-notes').value;
-    ftSetDay(ftCurrent, d);
-    ftFlash('ft-notesFlash');
-  }, 600);
+  ftNotesTimer = setTimeout(() => ftSaveNotesNow(), 600);
+}
+async function ftSaveNotesNow() {
+  clearTimeout(ftNotesTimer);
+  const d = ftDayData(ftCurrent);
+  d.notes = document.getElementById('ft-notes').value;
+  await ftSetDay(ftCurrent, d);
+  ftFlash('ft-notesFlash');
 }
 
 function ftFlash(id) {
@@ -1254,18 +1270,30 @@ function ftEscHtml(s) {
 let ftNutritionTimer;
 function ftSaveNutrition() {
   clearTimeout(ftNutritionTimer);
-  ftNutritionTimer = setTimeout(async () => {
-    const d = ftDayData(ftCurrent);
-    d.nutrition = {
-      cals: parseInt(document.getElementById('ft-cals').value) || null,
-      pro:  parseInt(document.getElementById('ft-pro').value)  || null,
-      carb: parseInt(document.getElementById('ft-carb').value) || null,
-      fat:  parseInt(document.getElementById('ft-fat').value)  || null,
-    };
-    ftSetDay(ftCurrent, d);
-    ftFlash('ft-nutritionFlash');
-  }, 600);
+  ftNutritionTimer = setTimeout(() => ftSaveNutritionNow(), 600);
 }
+async function ftSaveNutritionNow() {
+  clearTimeout(ftNutritionTimer);
+  const d = ftDayData(ftCurrent);
+  d.nutrition = ftReadNutrition();
+  await ftSetDay(ftCurrent, d);
+  ftFlash('ft-nutritionFlash');
+}
+
+// Save everything when tab goes to background or is closed
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    const bodyEl = document.getElementById('ft-weight');
+    if (!bodyEl) return;
+    const d = ftDayData(ftCurrent);
+    d.body = ftReadBody();
+    d.nutrition = ftReadNutrition();
+    const notesEl = document.getElementById('ft-notes');
+    if (notesEl) d.notes = notesEl.value;
+    _fitnessLog[ftCurrent] = d;
+    saveAll();
+  }
+});
 
 function ftSwitchView(v) {
   ['log','history','export'].forEach(n => {
